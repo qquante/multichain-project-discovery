@@ -1,0 +1,66 @@
+# Environment
+.env
+.env.local
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+db-data/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Documentation (except README)
+TASK.md
+TASKS.md
+TASK_*.md
+CHANGELOG.md
+ARCHITECTURE.md
+docs/*.md
+
+# Output files
+supabase_output.txt
+*.txt.bak
+
+# Test/Investigation files
+investigate*.py
+test_*.py
+check_*.py
+analyze_*.py
+
+# Sensitive
+*.pem
+*.key
+secrets/
+
