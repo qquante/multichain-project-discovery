@@ -60,6 +60,25 @@ DATE INDICATORS TO LOOK FOR:
 IMPORTANT: Always output launch_date in YYYY-MM-DD format!"""
 
 
+# AI Summary prompt for Telegram messages (max 448 chars)
+AI_SUMMARY_SYSTEM_PROMPT = """You are a crypto project analyst. 
+Write VERY SHORT summaries (max 400 chars) about crypto projects.
+Be concise, direct, and informative. No fluff.
+Focus on: what the project does, key differentiators, and launch status.
+Output ONLY the summary text, nothing else."""
+
+AI_SUMMARY_USER_PROMPT = """Write a brief summary (max 400 chars) for this crypto project:
+
+Project: {project_name}
+Chain: {chain}
+Type: {project_type}
+Bio: {bio}
+Website info: {website_summary}
+Launch: {launch_info}
+
+Summary (max 400 chars, plain text only):"""
+
+
 CALENDAR_USER_PROMPT = """Extract launch date information for @{handle}:
 
 === BIO ===
@@ -306,6 +325,57 @@ class CalendarAgent:
             self._log(f"[SAVED] @{twitter_handle} | calendar_id={calendar_id}")
         
         return analysis
+    
+    def generate_project_summary(
+        self,
+        project_name: str = "",
+        chain: str = "unknown",
+        project_type: str = "",
+        bio: str = "",
+        website_summary: str = "",
+        launch_date: str = None,
+        launch_urgency: str = "unknown"
+    ) -> str:
+        """
+        Generate a short AI summary about the project (max 448 chars).
+        Used for Telegram messages.
+        
+        Returns:
+            String summary or empty string if error
+        """
+        self._log(f"Generating summary for {project_name}...")
+        
+        # Build launch info
+        launch_info = f"urgency: {launch_urgency}"
+        if launch_date:
+            launch_info = f"launching {launch_date} ({launch_urgency})"
+        
+        prompt = AI_SUMMARY_USER_PROMPT.format(
+            project_name=project_name or "Unknown",
+            chain=chain,
+            project_type=project_type or "token",
+            bio=bio[:500] if bio else "[No bio]",
+            website_summary=website_summary[:300] if website_summary else "[No website]",
+            launch_info=launch_info
+        )
+        
+        response = self.llm_client.chat(
+            system_prompt=AI_SUMMARY_SYSTEM_PROMPT,
+            user_prompt=prompt
+        )
+        
+        if "error" in response:
+            self._log(f"[ERROR] Summary generation failed")
+            return ""
+        
+        summary = response.get("content", "").strip()
+        
+        # Ensure max 448 chars
+        if len(summary) > 448:
+            summary = summary[:445] + "..."
+        
+        self._log(f"[SUMMARY] Generated {len(summary)} chars")
+        return summary
 
 
 def run_calendar_analysis(limit: int = 50, verbose: bool = True) -> Dict[str, Any]:

@@ -78,6 +78,10 @@ class CollectorService:
             "batch_name": batch_name,
             "query_used": batch_name,
             
+            # Discovery source tracking
+            "discovery_source": "collector",
+            "discovery_keyword": batch_name,
+            
             "timestamp": datetime.now().isoformat()
         }
         

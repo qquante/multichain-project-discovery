@@ -93,6 +93,10 @@ class TriageService:
             "tweet_date": source.get('tweet_date'),
             "tweet_text_preview": source.get('tweet_text_preview'),
             
+            # Discovery source tracking
+            "discovery_source": tweet.get('discovery_source', 'collector'),
+            "discovery_keyword": tweet.get('discovery_keyword') or tweet.get('batch_name'),
+            
             "timestamp": datetime.now().isoformat()
         }
         

@@ -211,7 +211,11 @@ def convert_alphagate_to_triage(project: dict) -> dict:
             'key_followers_count': key_followers,
             'followers_when_found': project.get('followers_when_found', 0),
             'parent_tag': project.get('parent_id', {}).get('tag', []) if project.get('parent_id') else []
-        }
+        },
+        
+        # Discovery source tracking
+        'discovery_source': 'alphagate',
+        'discovery_keyword': None
     }
     
     return result
@@ -283,6 +287,10 @@ async def process_alphagate_project(redis_client, project: dict) -> bool:
             # Source
             'source_tweet_id': f"alphagate_{project.get('id', '')}",
             'tweet_text_preview': project.get('description', '')[:200],
+            
+            # Discovery source tracking
+            'discovery_source': 'alphagate',
+            'discovery_keyword': None,
             
             # Meta
             'source': 'alphagate',

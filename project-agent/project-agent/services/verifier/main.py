@@ -142,6 +142,16 @@ class VerifierService:
             "followers_when_found": result.get('followers_when_found', 0),
             "best_hunter_winrate": result.get('best_hunter_winrate', 0.0),
             
+            # Discovery source tracking
+            "discovery_source": triage_data.get('discovery_source', 'collector'),
+            "discovery_keyword": triage_data.get('discovery_keyword'),
+            
+            # Launch info from calendar
+            "launch_date": triage_data.get('launch_date'),
+            "launch_time": triage_data.get('launch_time'),
+            "launch_urgency": triage_data.get('launch_urgency', 'unknown'),
+            "launch_platform": triage_data.get('launch_platform'),
+            
             # Reasoning
             "reasoning": result.get('reasoning', ''),
             

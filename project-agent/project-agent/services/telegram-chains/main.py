@@ -154,8 +154,67 @@ def format_account_date(created_at: str) -> str:
         return "?"
 
 
+def format_discovery_source(data: dict) -> str:
+    """Format discovery source badge."""
+    source = data.get('discovery_source', 'collector')
+    keyword = data.get('discovery_keyword', '')
+    
+    if source == 'alphagate':
+        return "🎯 ALPHAGATE"
+    elif keyword:
+        return f"🔍 KEYWORD: <code>{keyword}</code>"
+    else:
+        return "🔍 COLLECTOR"
+
+
+def format_launch_info(data: dict) -> str:
+    """Format launch date/time info with days remaining."""
+    launch_date = data.get('launch_date', '') or ''
+    launch_time = data.get('launch_time', '') or ''
+    launch_urgency = data.get('launch_urgency', '') or 'unknown'
+    launch_platform = data.get('launch_platform', '') or ''
+    
+    if not launch_date or launch_date == 'TBA':
+        return f"TBA ({launch_urgency})"
+    
+    # Calculate days remaining
+    try:
+        launch_dt = datetime.strptime(launch_date, '%Y-%m-%d')
+        days_until = (launch_dt - datetime.now()).days
+        
+        if days_until <= 0:
+            days_str = "TODAY!"
+        elif days_until == 1:
+            days_str = "1 day"
+        else:
+            days_str = f"{days_until} days"
+        
+        # Format date nicely
+        date_nice = launch_dt.strftime("%b %d, %Y")
+        
+        result = f"{date_nice} ({days_str})"
+        if launch_time:
+            result = f"{date_nice} {launch_time} ({days_str})"
+        if launch_platform:
+            result += f" on {launch_platform}"
+        
+        return result
+    except:
+        return f"{launch_date} ({launch_urgency})"
+
+
+def format_token_info(data: dict) -> str:
+    """Format token name and ticker."""
+    name = data.get('project_name', '') or 'Unknown'
+    ticker = data.get('project_ticker', '') or ''
+    
+    if ticker:
+        return f"{name} {ticker}"
+    return name
+
+
 def format_message(data: dict, channel: str) -> str:
-    """Format message for chain-specific group."""
+    """Format message for chain-specific group - NEW LAYOUT."""
     msg_type = 'confirmed' if 'confirmed' in channel else 'monitored'
     handle = data.get('twitter_handle', '').lstrip('@')
     name = data.get('project_name', '') or 'Unknown'
@@ -168,39 +227,60 @@ def format_message(data: dict, channel: str) -> str:
     account_date = format_account_date(account_created)
     
     if msg_type == 'confirmed':
-        # Confirmed project
+        # === NEW PROJECT MESSAGE ===
         project_type = data.get('project_type', '') or 'token'
         followers = data.get('followers', 0)
-        bio = data.get('bio', '')[:200] if data.get('bio') else ''
+        bio = data.get('bio', '')[:300] if data.get('bio') else ''
         
-        # Launch info
-        launch_urgency = data.get('launch_urgency', '') or 'unknown'
-        launch_date = data.get('launch_date', '') or 'TBA'
-        launch_platform = data.get('launch_platform', '') or ''
+        # Discovery source
+        source_badge = format_discovery_source(data)
         
-        # AlphaGate
+        # AlphaGate stats
         key_followers = data.get('key_followers_count', 0)
         alpha_hunters = data.get('alpha_hunters_count', 0)
         best_wr = data.get('best_hunter_winrate', 0)
         
-        # Build launch line
-        launch_parts = [launch_urgency, launch_date]
-        if launch_platform:
-            launch_parts.append(launch_platform)
-        launch_line = ' | '.join(launch_parts)
+        # Token info
+        token_info = format_token_info(data)
         
-        message = f"""{chain_emoji} <b>NEW PROJECT</b> | {chain.upper()}
+        # Launch info
+        launch_info = format_launch_info(data)
+        
+        # Blue verified badge
+        is_verified = data.get('is_blue_verified', False)
+        verified_badge = " ✅" if is_verified else ""
+        
+        # Build KF stats line
+        kf_stats = f"KF: {key_followers} | H: {alpha_hunters}"
+        if best_wr:
+            kf_stats += f" | WR: {best_wr:.1f}%"
+        
+        # AI Summary (if available)
+        ai_summary = data.get('ai_summary', '') or data.get('reasoning', '')
+        ai_section = ""
+        if ai_summary:
+            ai_summary_short = ai_summary[:448] if len(ai_summary) > 448 else ai_summary
+            ai_section = f"\n\n💬 <i>{ai_summary_short}</i>"
+        
+        message = f"""{chain_emoji} <b>NEW PROJECT</b> [{source_badge}]
+
+🌎 FROM: {data.get('discovery_keyword') or 'AlphaGate Discovery' if data.get('discovery_source') == 'alphagate' else data.get('discovery_keyword') or 'Keyword Tracker'}
+
+🟣 CHAIN: {chain.upper()}
+
 ━━━━━━━━━━━━━━━━━━
-👤 <a href="https://x.com/{handle}">@{handle}</a> | 📛 {name}{f' | {ticker}' if ticker else ''}
-📊 {project_type} | 👥 {followers:,} | 📅 {account_date}
-🚀 LAUNCH | {launch_line}
 
-📋 {bio}
-
-🔑 KF: {key_followers} | 🎯 Hunters: {alpha_hunters}{f' | WR: {best_wr:.1f}%' if best_wr else ''}"""
+👤 Twitter: <a href="https://x.com/{handle}">@{handle}</a>{verified_badge}
+🫂 Followers: {followers:,}
+📅 Created at: {account_date}
+⭐️ Key Followers: {key_followers} ({kf_stats})
+📋 Bio: {bio}
+🔑 Token: {token_info}
+🎒 Type: {project_type}
+🚀 Launch at: {launch_info}{ai_section}"""
     
     else:
-        # Monitored update
+        # === UPDATE MESSAGE ===
         status = data.get('status', '') or data.get('monitoring_status', '')
         changes = data.get('changes', []) or []
         changes_str = ', '.join(changes) if changes else 'routine check'
@@ -208,17 +288,18 @@ def format_message(data: dict, channel: str) -> str:
         ca_detected = data.get('ca_detected', False) or data.get('ca_mentioned', False)
         ca_address = data.get('ca_address', '')
         
-        launch_urgency = data.get('launch_urgency', '') or 'unknown'
+        launch_info = format_launch_info(data)
         
         message = f"""{chain_emoji} <b>UPDATE</b> | {chain.upper()}
 ━━━━━━━━━━━━━━━━━━
 👤 <a href="https://x.com/{handle}">@{handle}</a> | 📛 {name}
-📊 {status} | ⏰ {launch_urgency}
+📊 Status: {status}
+🚀 Launch: {launch_info}
 
 📋 {changes_str}"""
         
         if ca_detected and ca_address:
-            message += f"\n\n🚀 <b>CA:</b> <code>{ca_address}</code>"
+            message += f"\n\n🎉 <b>CA:</b> <code>{ca_address}</code>"
     
     return message
 

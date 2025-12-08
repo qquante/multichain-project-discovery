@@ -76,6 +76,10 @@ def init_db():
             tweet_date TEXT,
             tweet_text_preview TEXT,
             
+            -- Discovery source (alphagate/collector)
+            discovery_source TEXT,
+            discovery_keyword TEXT,
+            
             -- Mentions
             tagged_accounts TEXT,
             tagged_chains TEXT,
@@ -152,6 +156,10 @@ def init_db():
             -- Source
             source_tweet_id TEXT,
             triage_id INTEGER,
+            
+            -- Discovery source (alphagate/collector)
+            discovery_source TEXT,
+            discovery_keyword TEXT,
             
             -- Website analysis
             site_url TEXT,
@@ -539,10 +547,11 @@ def save_triage_result(result: Dict[str, Any]) -> bool:
             project_name, project_ticker, project_type, project_chain, has_ca, ca_address,
             launch_status, launch_date, launch_time, launch_platform,
             source_tweet_id, tweet_date, tweet_text_preview,
+            discovery_source, discovery_keyword,
             tagged_accounts, tagged_chains, tagged_platforms,
             keywords_found, has_links, links, has_telegram, telegram_link, has_website, website_link,
             confidence, raw_response
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         twitter_handle,
         source.get('author_id'),
@@ -560,6 +569,8 @@ def save_triage_result(result: Dict[str, Any]) -> bool:
         source.get('tweet_id'),
         source.get('tweet_date'),
         source.get('tweet_text_preview'),
+        result.get('discovery_source', 'collector'),
+        result.get('discovery_keyword'),
         json.dumps(mentions.get('tagged_accounts', [])),
         json.dumps(mentions.get('tagged_chains', [])),
         json.dumps(mentions.get('tagged_platforms', [])),
@@ -595,6 +606,8 @@ def save_triage_result(result: Dict[str, Any]) -> bool:
         "source_tweet_id": source.get('tweet_id'),
         "tweet_date": source.get('tweet_date'),
         "tweet_text_preview": source.get('tweet_text_preview'),
+        "discovery_source": result.get('discovery_source', 'collector'),
+        "discovery_keyword": result.get('discovery_keyword'),
         "tagged_accounts": mentions.get('tagged_accounts', []),
         "tagged_chains": mentions.get('tagged_chains', []),
         "tagged_platforms": mentions.get('tagged_platforms', []),
@@ -756,6 +769,7 @@ def save_verification_result(result: Dict[str, Any], triage_data: Dict[str, Any]
             consistent_project_messaging, has_pinned_tweet_about_project,
             multiple_launch_announcements, bio_matches_tweets,
             source_tweet_id, triage_id,
+            discovery_source, discovery_keyword,
             site_url, site_accessible, site_title, site_description, site_content_preview,
             site_has_whitepaper, site_has_tokenomics, site_has_roadmap, site_has_team, site_has_audit,
             site_social_links, site_contract_found, site_contract_address,
@@ -772,6 +786,7 @@ def save_verification_result(result: Dict[str, Any], triage_data: Dict[str, Any]
             ?, ?, ?, ?,
             ?, ?, ?, ?,
             ?, ?, ?,
+            ?, ?,
             ?, ?,
             ?, ?,
             ?, ?,
@@ -823,6 +838,8 @@ def save_verification_result(result: Dict[str, Any], triage_data: Dict[str, Any]
         1 if signals.get('bio_matches_tweets') else 0,
         triage_data.get('source_tweet_id'),
         triage_data.get('id'),
+        triage_data.get('discovery_source', 'collector'),
+        triage_data.get('discovery_keyword'),
         site_analysis.get('url'),
         1 if site_analysis.get('accessible') else 0,
         site_analysis.get('title'),
@@ -898,6 +915,8 @@ def save_verification_result(result: Dict[str, Any], triage_data: Dict[str, Any]
         "bio_matches_tweets": bool(signals.get('bio_matches_tweets')),
         "source_tweet_id": triage_data.get('source_tweet_id'),
         "triage_id": triage_data.get('id'),
+        "discovery_source": triage_data.get('discovery_source', 'collector'),
+        "discovery_keyword": triage_data.get('discovery_keyword'),
         "site_url": site_analysis.get('url'),
         "site_accessible": bool(site_analysis.get('accessible')),
         "site_title": site_analysis.get('title'),
