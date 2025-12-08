@@ -35,7 +35,7 @@ CHAIN_CHAT_IDS = {
 }
 
 # Chains that map to 'megaeth' group (excluding monad which has its own)
-MEGAETH_CHAINS = ['megaeth', 'berachain', 'abstract', 'movement']
+MEGAETH_CHAINS = ['megaeth', 'abstract', 'movement']
 
 # Rate limiting
 RATE_LIMIT_SECONDS = 1.0
@@ -204,13 +204,50 @@ def format_launch_info(data: dict) -> str:
 
 
 def format_token_info(data: dict) -> str:
-    """Format token name and ticker."""
+    """Format token name and ticker (with possibilities if no confirmed ticker)."""
     name = data.get('project_name', '') or 'Unknown'
     ticker = data.get('project_ticker', '') or ''
     
     if ticker:
         return f"{name} {ticker}"
+    
+    # Try to get ticker possibilities
+    ticker_possibilities = data.get('ticker_possibilities', [])
+    if ticker_possibilities:
+        # Parse if string
+        if isinstance(ticker_possibilities, str):
+            try:
+                import json
+                ticker_possibilities = json.loads(ticker_possibilities)
+            except:
+                ticker_possibilities = []
+        
+        # Extract tickers
+        possible_tickers = []
+        for tp in ticker_possibilities[:3]:  # Max 3 possibilities
+            if isinstance(tp, dict):
+                t = tp.get('ticker', '')
+                if t:
+                    possible_tickers.append(t)
+            elif isinstance(tp, str):
+                possible_tickers.append(tp)
+        
+        if possible_tickers:
+            return f"{name} ({', '.join(possible_tickers)})"
+    
     return name
+
+
+def create_buttons(handle: str) -> list:
+    """Create inline keyboard buttons for the message."""
+    handle = handle.lstrip('@')
+    return [
+        [
+            {"text": "👤 Profile", "url": f"https://x.com/{handle}"},
+            {"text": "🎯 Alphagate", "url": f"https://alphagate.io/project/{handle}"},
+            {"text": "🛑 Stop Track", "callback_data": f"stop:{handle}"}
+        ]
+    ]
 
 
 def format_message(data: dict, channel: str) -> str:
@@ -461,8 +498,12 @@ async def main():
                 # Format message
                 formatted = format_message(data, channel)
                 
-                # Add to queue
-                sender.add_message(chain, formatted)
+                # Create buttons
+                handle = data.get('twitter_handle', '').lstrip('@')
+                buttons = create_buttons(handle) if handle else None
+                
+                # Add to queue with buttons
+                sender.add_message(chain, formatted, buttons)
                 
                 log(f"[QUEUED] {channel} | @{data.get('twitter_handle', '?')} | chain={chain}")
                 

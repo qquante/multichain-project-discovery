@@ -19,7 +19,7 @@ from .database import (
     get_verification_stats
 )
 from .alphagate_client import AlphaGateClient
-from .ca_detector import is_project_launched, detect_contract_address
+from .ca_detector import is_project_launched, detect_ca
 
 # Import user clients
 from users.api_client import UserInfoClient, UserTweetsClient

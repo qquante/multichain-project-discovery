@@ -49,7 +49,7 @@ class VerifierService:
         """Map chain to group key for telegram-chains (8 groups)."""
         chain_lower = (chain or 'unknown').lower()
         
-        megaeth_chains = ['megaeth', 'berachain', 'abstract', 'movement']
+        megaeth_chains = ['megaeth', 'abstract', 'movement']
         if chain_lower in ['sol', 'solana']:
             return 'solana'
         elif chain_lower in ['base']:
