@@ -263,6 +263,7 @@ class ProjectVerifier:
         # Add raw data for storage
         result['raw_user_info'] = user_info
         result['raw_tweets'] = tweets
+        result['pinned_tweet'] = pin_tweet_text
         
         # Add AlphaGate enrichment data (ALL fields)
         result['alphagate_data'] = alphagate_data

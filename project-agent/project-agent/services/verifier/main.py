@@ -49,7 +49,7 @@ class VerifierService:
         """Map chain to group key for telegram-chains (8 groups)."""
         chain_lower = (chain or 'unknown').lower()
         
-        megaeth_chains = ['megaeth', 'abstract', 'movement']
+        megaeth_chains = ['megaeth']
         if chain_lower in ['sol', 'solana']:
             return 'solana'
         elif chain_lower in ['base']:
@@ -272,9 +272,19 @@ class VerifierService:
                         # Save to calendar with date extraction
                         try:
                             user_profile = result.get('user_profile', {}) or {}
+                            site_analysis = result.get('site_analysis', {}) or {}
+                            
+                            # Get raw tweets for better date extraction
+                            raw_tweets = result.get('raw_tweets', [])
+                            pinned_tweet = result.get('pinned_tweet', '')
+                            website_content = site_analysis.get('raw_content', '') or site_analysis.get('content_preview', '')
+                            
                             self.calendar_agent.analyze_and_save(
                                 twitter_handle=handle,
                                 bio=user_profile.get('bio', ''),
+                                tweets=raw_tweets,
+                                pinned_tweet=pinned_tweet,
+                                website_content=website_content,
                                 chain=project.get('project_chain', 'unknown'),
                                 project_name=project.get('project_name'),
                                 project_ticker=project.get('project_ticker'),

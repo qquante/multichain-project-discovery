@@ -60,23 +60,24 @@ DATE INDICATORS TO LOOK FOR:
 IMPORTANT: Always output launch_date in YYYY-MM-DD format!"""
 
 
-# AI Summary prompt for Telegram messages (max 448 chars)
-AI_SUMMARY_SYSTEM_PROMPT = """You are a crypto project analyst. 
-Write VERY SHORT summaries (max 400 chars) about crypto projects.
-Be concise, direct, and informative. No fluff.
-Focus on: what the project does, key differentiators, and launch status.
-Output ONLY the summary text, nothing else."""
+# AI Summary prompt for Telegram messages (max 448 chars) - ALWAYS IN PORTUGUESE (PT-BR)
+AI_SUMMARY_SYSTEM_PROMPT = """Você é um analista de projetos crypto.
+Escreva resumos MUITO CURTOS (máximo 400 caracteres) sobre projetos crypto.
+Seja conciso, direto e informativo. Sem enrolação.
+Foque em: o que o projeto faz, diferenciais principais, e status de lançamento.
+SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
+Retorne APENAS o texto do resumo, nada mais."""
 
-AI_SUMMARY_USER_PROMPT = """Write a brief summary (max 400 chars) for this crypto project:
+AI_SUMMARY_USER_PROMPT = """Escreva um resumo breve (máx 400 chars) em PORTUGUÊS para este projeto crypto:
 
-Project: {project_name}
+Projeto: {project_name}
 Chain: {chain}
-Type: {project_type}
+Tipo: {project_type}
 Bio: {bio}
-Website info: {website_summary}
-Launch: {launch_info}
+Info do site: {website_summary}
+Lançamento: {launch_info}
 
-Summary (max 400 chars, plain text only):"""
+Resumo em PORTUGUÊS (máx 400 chars, texto puro):"""
 
 
 CALENDAR_USER_PROMPT = """Extract launch date information for @{handle}:

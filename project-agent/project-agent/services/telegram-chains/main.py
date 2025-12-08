@@ -35,7 +35,7 @@ CHAIN_CHAT_IDS = {
 }
 
 # Chains that map to 'megaeth' group (excluding monad which has its own)
-MEGAETH_CHAINS = ['megaeth', 'abstract', 'movement']
+MEGAETH_CHAINS = ['megaeth']
 
 # Rate limiting
 RATE_LIMIT_SECONDS = 1.0
