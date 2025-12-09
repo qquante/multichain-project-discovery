@@ -306,13 +306,14 @@ class VerifierService:
                             self.log(f"[CALENDAR_ERROR] @{handle}: {str(cal_e)[:50]}")
                             result['ticker_possibilities'] = []
                         
-                        # 2. Generate AI summary in PT-BR
+                        # 2. Generate AI summary in PT-BR (with tweets for context!)
                         try:
                             ai_summary = self.calendar_agent.generate_project_summary(
                                 project_name=project.get('project_name'),
                                 chain=project.get('project_chain', 'unknown'),
                                 project_type=project.get('project_type'),
                                 bio=user_profile.get('bio', ''),
+                                tweets=raw_tweets,  # Pass tweets for better context
                                 website_summary=site_analysis.get('content_preview', ''),
                                 launch_date=result.get('launch_date'),
                                 launch_urgency=result.get('launch_urgency', 'unknown')

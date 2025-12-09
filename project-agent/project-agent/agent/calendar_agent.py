@@ -69,9 +69,10 @@ PRIORIDADE: Explique O QUE O PROJETO FAZ e PARA QUE SERVE.
 - Qual o diferencial?
 - Para quem é útil?
 
-Se NÃO houver informação suficiente, diga apenas: "Projeto em fase inicial. Informações limitadas."
+ANALISE a bio E os tweets para entender o projeto.
+Se NÃO houver informação suficiente, diga: "Projeto em fase inicial. Detalhes ainda não divulgados."
 
-NUNCA mencione: AlphaGate, detecção de CA, análise técnica, monitoramento, pré-lançamento.
+NUNCA mencione: AlphaGate, detecção de CA, análise técnica, monitoramento, pré-lançamento, "representa um projeto real".
 SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
 Retorne APENAS o resumo do projeto, nada mais."""
 
@@ -80,10 +81,15 @@ AI_SUMMARY_USER_PROMPT = """Escreva um resumo breve (máx 65 palavras) em PORTUG
 Projeto: {project_name}
 Chain: {chain}
 Tipo: {project_type}
+
 Bio: {bio}
+
+Tweets recentes:
+{tweets_text}
+
 Info do site: {website_summary}
 
-Foque em: O que é o projeto? O que ele faz? Para que serve?
+TAREFA: Explique O QUE o projeto faz, qual o produto/serviço, para quem é útil.
 Resumo em PORTUGUÊS (máx 65 palavras):"""
 
 
@@ -340,31 +346,38 @@ class CalendarAgent:
         chain: str = "unknown",
         project_type: str = "",
         bio: str = "",
+        tweets: List[Dict[str, Any]] = None,
         website_summary: str = "",
         launch_date: str = None,
         launch_urgency: str = "unknown"
     ) -> str:
         """
         Generate a short AI summary about the project (max 65 words / ~300 chars).
-        Used for Telegram messages.
+        Uses bio, tweets, and website to understand what the project does.
         
         Returns:
             String summary or empty string if error
         """
         self._log(f"Generating summary for {project_name}...")
         
-        # Build launch info
-        launch_info = f"urgency: {launch_urgency}"
-        if launch_date:
-            launch_info = f"launching {launch_date} ({launch_urgency})"
+        # Build tweets text (max 5 tweets, 150 chars each)
+        tweets_text = "[Sem tweets]"
+        if tweets:
+            tweet_lines = []
+            for t in tweets[:5]:
+                text = t.get('text', '')[:150] if isinstance(t, dict) else str(t)[:150]
+                if text:
+                    tweet_lines.append(f"- {text}")
+            if tweet_lines:
+                tweets_text = "\n".join(tweet_lines)
         
         prompt = AI_SUMMARY_USER_PROMPT.format(
             project_name=project_name or "Unknown",
             chain=chain,
             project_type=project_type or "token",
             bio=bio[:500] if bio else "[No bio]",
-            website_summary=website_summary[:300] if website_summary else "[No website]",
-            launch_info=launch_info
+            tweets_text=tweets_text,
+            website_summary=website_summary[:300] if website_summary else "[No website]"
         )
         
         response = self.llm_client.chat(
