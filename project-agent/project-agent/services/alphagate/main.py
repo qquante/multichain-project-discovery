@@ -20,7 +20,7 @@ from agent.database import (
     save_triage_result
 )
 
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6388')
 ALPHAGATE_INTERVAL_HOURS = int(os.getenv('ALPHAGATE_INTERVAL_HOURS', '2'))  # Every 2 hours
 ALPHAGATE_MAX_FOLLOWERS = int(os.getenv('ALPHAGATE_MAX_FOLLOWERS', '50000'))
 ALPHAGATE_MIN_KEY_FOLLOWERS = int(os.getenv('ALPHAGATE_MIN_KEY_FOLLOWERS', '1'))

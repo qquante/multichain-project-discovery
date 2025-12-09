@@ -21,7 +21,7 @@ from users.api_client import UserTweetsClient
 from agent.database import get_connection
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 CHECK_INTERVAL_DAYS = int(os.environ.get('CHECK_INTERVAL_DAYS', 7))
 DAYS_TO_REMOVE = 30  # Days without posting to mark as removed
 

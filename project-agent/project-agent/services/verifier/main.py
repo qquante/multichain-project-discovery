@@ -21,7 +21,7 @@ from agent.database import init_db, get_pending_verifications, get_verification_
 from agent.calendar_agent import CalendarAgent
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 BATCH_SIZE = 999999  # Process ALL - no limit
 POLL_INTERVAL = 30  # Check for pending verifications every 30 seconds
 DELAY_BETWEEN_PROJECTS = 2.0  # Delay between verifications

@@ -18,7 +18,7 @@ import redis.asyncio as redis
 import requests
 
 # Configuration
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6388')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Chat IDs for each chain (to be filled in .env) - 9 channels

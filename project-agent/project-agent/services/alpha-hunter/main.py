@@ -17,7 +17,7 @@ sys.path.insert(0, '/app')
 # Import database functions
 from tweets.database import init_db, save_tweet, tweet_exists
 
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6388')
 TWITTER_API_KEY = os.getenv('TWITTER_API_KEY', '')
 HUNT_INTERVAL_HOURS = int(os.getenv('HUNT_INTERVAL_HOURS', '12'))
 TWEETS_PER_CALLER = int(os.getenv('TWEETS_PER_CALLER', '20'))

@@ -20,7 +20,7 @@ from tweets.batch_collector import BatchCollector
 from tweets.database import init_db, get_tweet_count, get_all_tweets
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 COLLECTION_INTERVAL_HOURS = int(os.environ.get('COLLECTION_INTERVAL_HOURS', 3))
 MAX_PAGES_PER_BATCH = 5
 

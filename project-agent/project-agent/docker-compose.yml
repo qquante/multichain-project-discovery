@@ -5,12 +5,12 @@ services:
     image: redis:7-alpine
     container_name: agent-redis
     ports:
-      - "6379:6379"
+      - "6388:6388"
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --port 6388
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-p", "6388", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - COLLECTION_INTERVAL_HOURS=3
       - DB_PATH=/app/data
@@ -46,7 +46,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - OPENROUTER_KEY=${OPENROUTER_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
       - SUPABASE_URL=${SUPABASE_URL}
@@ -68,7 +68,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - OPENROUTER_KEY=${OPENROUTER_KEY:-[REMOVED_CREDENTIAL]}
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
@@ -91,7 +91,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - OPENROUTER_KEY=${OPENROUTER_KEY:-[REMOVED_CREDENTIAL]}
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
@@ -114,7 +114,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
       - CHECK_INTERVAL_DAYS=7
@@ -137,7 +137,7 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - OPENROUTER_KEY=${OPENROUTER_KEY:-[REMOVED_CREDENTIAL]}
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
@@ -164,7 +164,7 @@ services:
       - db-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
       - DB_PATH=/app/data
       - HUNT_INTERVAL_HOURS=${HUNT_INTERVAL_HOURS:-12}
@@ -188,7 +188,7 @@ services:
       - db-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - DB_PATH=/app/data
       - ALPHAGATE_INTERVAL_HOURS=${ALPHAGATE_INTERVAL_HOURS:-2}
       - ALPHAGATE_MAX_FOLLOWERS=${ALPHAGATE_MAX_FOLLOWERS:-50000}
@@ -216,7 +216,7 @@ services:
           memory: 256M
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TELEGRAM_BOT_TOKEN=[REMOVED_CREDENTIAL]
       - TELEGRAM_GROUP_ID=${TELEGRAM_GROUP_ID:--1003466463312}
       - TOPIC_STAGE_0=10
@@ -241,7 +241,7 @@ services:
           memory: 128M
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TELEGRAM_BOT_TOKEN=[REMOVED_CREDENTIAL]
       - TELEGRAM_GROUP_ID=${TELEGRAM_GROUP_ID:--1003466463312}
       - TOPIC_MENTIONS=14
@@ -260,7 +260,7 @@ services:
     container_name: agent-telegram-chains
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_CHAINS}
       - TELEGRAM_CHAT_ID_SOLANA=${TELEGRAM_CHAT_ID_SOLANA}
       - TELEGRAM_CHAT_ID_BASE=${TELEGRAM_CHAT_ID_BASE}
@@ -286,7 +286,7 @@ services:
       - db-data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6388
       - DB_PATH=/app/data
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_CHAINS}
       - TELEGRAM_ALERT_CHAT_ID=${TELEGRAM_ALERT_CHAT_ID}

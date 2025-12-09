@@ -27,7 +27,7 @@ from formatter import (
     format_project_reactivated
 )
 
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 GROUP_ID = os.environ.get('TELEGRAM_GROUP_ID', '-1003466463312')
 

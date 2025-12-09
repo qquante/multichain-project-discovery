@@ -29,7 +29,7 @@ from agent.database import (
 )
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 CHECK_INTERVAL = 60  # Check for projects to monitor every 60 seconds
 BATCH_SIZE = 999999  # Process ALL - no limit
 

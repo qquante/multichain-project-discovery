@@ -20,7 +20,7 @@ from agent.discoverer import ProjectDiscoverer
 from agent.database import init_db, get_mention_stats, get_handles_to_investigate
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 DISCOVERY_INTERVAL = int(os.environ.get('DISCOVERY_INTERVAL', 1800))  # 30 min default
 MIN_MENTIONS = int(os.environ.get('MIN_MENTIONS', 1))  # Minimum mentions to investigate
 BATCH_LIMIT = int(os.environ.get('BATCH_LIMIT', 20))  # Max handles per cycle

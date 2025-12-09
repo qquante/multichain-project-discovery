@@ -20,7 +20,7 @@ from agent.analyzer import TweetAnalyzer
 from agent.database import init_db, get_pending_tweets, get_triage_stats, get_fingerprints
 
 # Configuration
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
 BATCH_SIZE = 999999  # Process ALL tweets - no limit
 POLL_INTERVAL = 10  # Check for new tweets every 10 seconds
 DELAY_BETWEEN_TWEETS = 1.0  # Delay between LLM calls
