@@ -271,8 +271,30 @@ def format_message(data: dict, channel: str) -> str:
         ai_summary = data.get('ai_summary', '') or data.get('reasoning', '')
         ai_section = ""
         if ai_summary:
-            ai_summary_short = ai_summary[:300] if len(ai_summary) > 300 else ai_summary
-            ai_section = f"\n\n💬 <i>{ai_summary_short}</i>"
+            # Clean JSON artifacts if LLM returned JSON instead of plain text
+            ai_clean = ai_summary.strip()
+            if ai_clean.startswith('{'):
+                # Try to extract text from JSON
+                try:
+                    import json
+                    parsed = json.loads(ai_clean)
+                    # Look for common keys that contain the summary text
+                    for key in ['resumo', 'summary', 'project_summary', 'projeto']:
+                        if key in parsed and isinstance(parsed[key], str):
+                            ai_clean = parsed[key]
+                            break
+                    else:
+                        # Just use first string value found
+                        for v in parsed.values():
+                            if isinstance(v, str) and len(v) > 20:
+                                ai_clean = v
+                                break
+                except:
+                    # If JSON parse fails, just strip the braces
+                    ai_clean = ai_clean.strip('{}[]"\'').strip()
+            
+            # Don't truncate - show full summary
+            ai_section = f"\n\n💬 <i>{ai_clean}</i>"
         
         message = f"""🟢 <b>NEW PROJECT</b> [{source_badge}]
 

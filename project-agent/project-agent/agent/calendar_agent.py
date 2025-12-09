@@ -74,7 +74,9 @@ Se NÃO houver informação suficiente, diga: "Projeto em fase inicial. Detalhes
 
 NUNCA mencione: AlphaGate, detecção de CA, análise técnica, monitoramento, pré-lançamento, "representa um projeto real".
 SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
-Retorne APENAS o resumo do projeto, nada mais."""
+
+FORMATO DE RESPOSTA: Texto puro, SEM JSON, SEM chaves {}, SEM aspas.
+Retorne APENAS o parágrafo do resumo, nada mais."""
 
 AI_SUMMARY_USER_PROMPT = """Escreva um resumo breve (máx 65 palavras) em PORTUGUÊS explicando O QUE ESSE PROJETO FAZ:
 
