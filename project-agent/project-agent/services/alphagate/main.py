@@ -1,6 +1,16 @@
 """
 AlphaGate Service
-Fetches pre-filtered projects from AlphaGate API and inserts directly into triage pipeline.
+Fetches pre-filtered projects from AlphaGate API.
+
+FLOW NOTE: 
+  AlphaGate projects SKIP the Triage LLM analysis because they are already
+  pre-filtered by AlphaGate's algorithm. They go directly to triaged_projects
+  and then to the Verifier service.
+  
+  Pipeline: AlphaGate API -> triaged_projects -> Verifier -> Monitor
+  (vs Collector: tweets.db -> Triage LLM -> triaged_projects -> Verifier -> Monitor)
+  
+  To identify AlphaGate projects: discovery_source='alphagate'
 """
 
 import os

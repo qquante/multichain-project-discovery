@@ -391,9 +391,8 @@ class CalendarAgent:
         
         summary = response.get("content", "").strip()
         
-        # Ensure max ~300 chars (65 words)
-        if len(summary) > 300:
-            summary = summary[:297] + "..."
+        # Trust the LLM to respect the 65 word limit from the prompt
+        # Do NOT truncate - the prompt already enforces the limit
         
         self._log(f"[SUMMARY] Generated {len(summary)} chars")
         return summary

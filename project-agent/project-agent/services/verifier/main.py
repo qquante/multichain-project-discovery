@@ -19,6 +19,7 @@ sys.path.insert(0, '/app')
 from agent.verifier import ProjectVerifier
 from agent.database import init_db, get_pending_verifications, get_verification_stats, get_fingerprints
 from agent.calendar_agent import CalendarAgent
+from agent.chain_utils import get_chain_group
 
 # Configuration
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
@@ -44,28 +45,6 @@ class VerifierService:
     def log(self, msg: str):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] [VERIFIER] {msg}", flush=True)
-    
-    def _get_chain_group(self, chain: str) -> str:
-        """Map chain to group key for telegram-chains (8 groups)."""
-        chain_lower = (chain or 'unknown').lower()
-        
-        megaeth_chains = ['megaeth']
-        if chain_lower in ['sol', 'solana']:
-            return 'solana'
-        elif chain_lower in ['base']:
-            return 'base'
-        elif chain_lower in ['eth', 'ethereum']:
-            return 'ethereum'
-        elif chain_lower in ['bsc', 'bnb', 'binance']:
-            return 'bsc'
-        elif chain_lower in ['monad']:
-            return 'monad'
-        elif chain_lower in megaeth_chains:
-            return 'megaeth'
-        elif chain_lower in ['unknown', '']:
-            return 'unknown'
-        else:
-            return 'other'
     
     def publish_confirmed_project(self, result: dict, triage_data: dict):
         """Publish confirmed project to Redis for monitoring and Telegram."""
@@ -172,7 +151,7 @@ class VerifierService:
             
             # Publish to chain-specific channel for telegram-chains service
             chain = (triage_data.get('project_chain') or 'unknown').lower()
-            chain_channel = f"projects:confirmed:{self._get_chain_group(chain)}"
+            chain_channel = f"projects:confirmed:{get_chain_group(chain)}"
             chain_subs = self.redis.publish(chain_channel, json_msg)
             self.log(f"[PUBLISH] {chain_channel} | subscribers={chain_subs}")
             
@@ -261,7 +240,9 @@ class VerifierService:
         for i, project in enumerate(pending, 1):
             try:
                 handle = project.get('twitter_handle', 'unknown')
-                self.log(f"[{i}/{len(pending)}] Verifying @{handle}...")
+                source = project.get('discovery_source', 'collector')
+                source_tag = "[ALPHAGATE]" if source == 'alphagate' else "[COLLECTOR]"
+                self.log(f"[{i}/{len(pending)}] {source_tag} Verifying @{handle}...")
                 
                 result = self.verifier.verify_project(project)
                 processed += 1

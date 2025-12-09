@@ -27,6 +27,7 @@ from agent.database import (
     update_calendar_status,
     save_to_calendar
 )
+from agent.chain_utils import get_chain_group
 
 # Configuration
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6388')
@@ -53,28 +54,6 @@ class MonitorService:
     def log(self, msg: str):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] [MONITOR] {msg}", flush=True)
-    
-    def _get_chain_group(self, chain: str) -> str:
-        """Map chain to group key for telegram-chains (8 groups)."""
-        chain_lower = (chain or 'unknown').lower()
-        
-        megaeth_chains = ['megaeth']
-        if chain_lower in ['sol', 'solana']:
-            return 'solana'
-        elif chain_lower in ['base']:
-            return 'base'
-        elif chain_lower in ['eth', 'ethereum']:
-            return 'ethereum'
-        elif chain_lower in ['bsc', 'bnb', 'binance']:
-            return 'bsc'
-        elif chain_lower in ['monad']:
-            return 'monad'
-        elif chain_lower in megaeth_chains:
-            return 'megaeth'
-        elif chain_lower in ['unknown', '']:
-            return 'unknown'
-        else:
-            return 'other'
     
     def publish_project_update(self, result: dict, project: dict, update_type: str):
         """Publish project update to Redis for Telegram alerts."""
@@ -170,7 +149,7 @@ class MonitorService:
         
         # Publish to chain-specific channel for telegram-chains service
         chain = (project.get('project_chain') or 'unknown').lower()
-        chain_channel = f"projects:monitored:{self._get_chain_group(chain)}"
+        chain_channel = f"projects:monitored:{get_chain_group(chain)}"
         self.redis.publish(chain_channel, json_msg)
         self.log(f"[PUBLISH] {chain_channel}")
     
@@ -213,12 +192,13 @@ class MonitorService:
                     
                     # Determine update type and publish
                     # CRITICAL: Check CA first - if CA detected, SILENTLY remove (no alert!)
-                    if result.get('ca_found'):
+                    # Use "is True" to avoid None being treated as False
+                    if result.get('ca_found') is True:
                         # CA detected - project already launched
                         # SILENTLY update calendar and remove from monitoring - NO TELEGRAM ALERT!
                         update_calendar_status(handle, 'launched', result.get('ca_address'))
                         self.log(f"[CA_DETECTED] @{handle} - CA: {result.get('ca_address', '')[:20]}... - SILENTLY removed")
-                    elif new_status == 'launched' and not result.get('ca_found'):
+                    elif new_status == 'launched' and result.get('ca_found') is False:
                         # Launched WITHOUT CA detection (e.g., announcement only)
                         # This case should be rare - usually launched = CA found
                         self.publish_project_update(result, project, 'launched')

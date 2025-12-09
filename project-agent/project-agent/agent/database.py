@@ -32,10 +32,54 @@ def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
     return conn
 
 
+def _run_migrations(conn, cur):
+    """Add missing columns to existing tables (safe migrations)."""
+    
+    # Get existing columns in verified_projects
+    try:
+        cur.execute("PRAGMA table_info(verified_projects)")
+        existing_cols = {row[1] for row in cur.fetchall()}
+        
+        # Add discovery_source if missing
+        if 'discovery_source' not in existing_cols:
+            cur.execute('ALTER TABLE verified_projects ADD COLUMN discovery_source TEXT')
+            print("[MIGRATION] Added discovery_source to verified_projects")
+        
+        # Add discovery_keyword if missing  
+        if 'discovery_keyword' not in existing_cols:
+            cur.execute('ALTER TABLE verified_projects ADD COLUMN discovery_keyword TEXT')
+            print("[MIGRATION] Added discovery_keyword to verified_projects")
+            
+        conn.commit()
+    except Exception as e:
+        # Table might not exist yet - that's ok
+        pass
+    
+    # Get existing columns in triaged_projects
+    try:
+        cur.execute("PRAGMA table_info(triaged_projects)")
+        existing_cols = {row[1] for row in cur.fetchall()}
+        
+        if 'discovery_source' not in existing_cols:
+            cur.execute('ALTER TABLE triaged_projects ADD COLUMN discovery_source TEXT')
+            print("[MIGRATION] Added discovery_source to triaged_projects")
+        
+        if 'discovery_keyword' not in existing_cols:
+            cur.execute('ALTER TABLE triaged_projects ADD COLUMN discovery_keyword TEXT')
+            print("[MIGRATION] Added discovery_keyword to triaged_projects")
+            
+        conn.commit()
+    except Exception as e:
+        pass
+
+
 def init_db():
     """Initialize agent database with control tables."""
     conn = get_connection()
     cur = conn.cursor()
+    
+    # Run migrations for existing tables (add missing columns)
+    _run_migrations(conn, cur)
     
     # Processed tweets - tracks which tweets have been analyzed
     cur.execute('''

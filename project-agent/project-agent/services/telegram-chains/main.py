@@ -17,6 +17,12 @@ from datetime import datetime
 import redis.asyncio as redis
 import requests
 
+# Add shared modules to path
+sys.path.insert(0, '/app/shared')
+sys.path.insert(0, '/app')
+
+from agent.chain_utils import get_chain_group, get_chain_emoji
+
 # Configuration
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6388')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -76,28 +82,6 @@ def get_chain_from_channel(channel: str) -> str:
     return 'unknown'
 
 
-def get_chain_group(chain: str) -> str:
-    """Map chain to group key (8 groups)."""
-    chain_lower = chain.lower() if chain else 'unknown'
-    
-    if chain_lower in ['sol', 'solana']:
-        return 'solana'
-    elif chain_lower in ['base']:
-        return 'base'
-    elif chain_lower in ['eth', 'ethereum']:
-        return 'ethereum'
-    elif chain_lower in ['bsc', 'bnb', 'binance']:
-        return 'bsc'
-    elif chain_lower in ['monad']:
-        return 'monad'
-    elif chain_lower in MEGAETH_CHAINS:
-        return 'megaeth'
-    elif chain_lower in ['unknown', '']:
-        return 'unknown'
-    else:
-        return 'other'
-
-
 def get_chat_id_for_chain(chain: str) -> str:
     """Get Telegram chat ID for a chain."""
     group = get_chain_group(chain)
@@ -105,20 +89,8 @@ def get_chat_id_for_chain(chain: str) -> str:
 
 
 def format_chain_emoji(chain: str) -> str:
-    """Get emoji for chain."""
-    emojis = {
-        'solana': '🟢',
-        'base': '🔵',
-        'ethereum': '🟣',
-        'bsc': '🟡',
-        'bnb': '🟡',
-        'megaeth': '⚡',
-        'monad': '🟪',
-        'berachain': '🐻',
-        'other': '🔶',
-        'unknown': '❓'
-    }
-    return emojis.get(chain.lower(), '🔷')
+    """Get emoji for chain - uses shared chain_utils."""
+    return get_chain_emoji(chain)
 
 
 def format_account_date(created_at: str) -> str:
