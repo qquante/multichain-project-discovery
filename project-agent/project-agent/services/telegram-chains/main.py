@@ -328,7 +328,7 @@ def format_message(data: dict, channel: str) -> str:
 
 ━━━━━━━━━━━━━━━━━━
 
-👤 Twitter: <a href="https://x.com/{handle}">@{handle}</a>{verified_badge}
+👤 Twitter: <a href="https://x.com/{handle}">{handle}</a>{verified_badge}
 🫂 Followers: {followers:,}
 📅 Created at: {account_date}
 ⭐️ Key Followers: {key_followers} ({kf_stats})
@@ -353,7 +353,7 @@ def format_message(data: dict, channel: str) -> str:
         
         message = f"""{chain_emoji} <b>UPDATE</b> | {chain.upper()}
 ━━━━━━━━━━━━━━━━━━
-👤 <a href="https://x.com/{handle}">@{handle}</a> | 📛 {name}
+👤 <a href="https://x.com/{handle}">{handle}</a> | 📛 {name}
 📊 Status: {status}
 🚀 Launch: {launch_info}
 
