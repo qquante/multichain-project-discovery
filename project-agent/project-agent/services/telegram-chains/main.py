@@ -208,8 +208,11 @@ def format_token_info(data: dict) -> str:
     name = data.get('project_name', '') or 'Unknown'
     ticker = data.get('project_ticker', '') or ''
     
+    # If we have a confirmed ticker, show: Name $TICKER (both bold)
     if ticker:
-        return f"{name} {ticker}"
+        # Ensure ticker has $ prefix
+        ticker_formatted = ticker if ticker.startswith('$') else f"${ticker}"
+        return f"<b>{name}</b> <b>{ticker_formatted}</b>"
     
     # Try to get ticker possibilities
     ticker_possibilities = data.get('ticker_possibilities', [])
@@ -233,9 +236,9 @@ def format_token_info(data: dict) -> str:
                 possible_tickers.append(tp)
         
         if possible_tickers:
-            return f"{name} ({', '.join(possible_tickers)})"
+            return f"<b>{name}</b> (Possible: {', '.join(possible_tickers)})"
     
-    return name
+    return f"<b>{name}</b>"
 
 
 def create_buttons(handle: str) -> list:
