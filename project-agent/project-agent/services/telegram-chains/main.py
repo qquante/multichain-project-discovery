@@ -299,14 +299,13 @@ def format_message(data: dict, channel: str) -> str:
         ai_summary = data.get('ai_summary', '') or data.get('reasoning', '')
         ai_section = ""
         if ai_summary:
-            ai_summary_short = ai_summary[:448] if len(ai_summary) > 448 else ai_summary
+            ai_summary_short = ai_summary[:300] if len(ai_summary) > 300 else ai_summary
             ai_section = f"\n\n💬 <i>{ai_summary_short}</i>"
         
-        message = f"""{chain_emoji} <b>NEW PROJECT</b> [{source_badge}]
+        message = f"""🟢 <b>NEW PROJECT</b> [{source_badge}]
 
 🌎 FROM: {data.get('discovery_keyword') or 'AlphaGate Discovery' if data.get('discovery_source') == 'alphagate' else data.get('discovery_keyword') or 'Keyword Tracker'}
-
-🟣 CHAIN: {chain.upper()}
+{chain_emoji} CHAIN: {chain.upper()}
 
 ━━━━━━━━━━━━━━━━━━
 
@@ -314,9 +313,12 @@ def format_message(data: dict, channel: str) -> str:
 🫂 Followers: {followers:,}
 📅 Created at: {account_date}
 ⭐️ Key Followers: {key_followers} ({kf_stats})
+
 📋 Bio: {bio}
+
 🔑 Token: {token_info}
 🎒 Type: {project_type}
+
 🚀 Launch at: {launch_info}{ai_section}"""
     
     else:

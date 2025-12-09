@@ -60,24 +60,31 @@ DATE INDICATORS TO LOOK FOR:
 IMPORTANT: Always output launch_date in YYYY-MM-DD format!"""
 
 
-# AI Summary prompt for Telegram messages (max 448 chars) - ALWAYS IN PORTUGUESE (PT-BR)
+# AI Summary prompt for Telegram messages (max 65 palavras) - ALWAYS IN PORTUGUESE (PT-BR)
 AI_SUMMARY_SYSTEM_PROMPT = """Você é um analista de projetos crypto.
-Escreva resumos MUITO CURTOS (máximo 400 caracteres) sobre projetos crypto.
-Seja conciso, direto e informativo. Sem enrolação.
-Foque em: o que o projeto faz, diferenciais principais, e status de lançamento.
-SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
-Retorne APENAS o texto do resumo, nada mais."""
+Escreva resumos MUITO CURTOS (máximo 65 palavras) sobre projetos crypto.
 
-AI_SUMMARY_USER_PROMPT = """Escreva um resumo breve (máx 400 chars) em PORTUGUÊS para este projeto crypto:
+PRIORIDADE: Explique O QUE O PROJETO FAZ e PARA QUE SERVE.
+- Qual é o produto ou serviço?
+- Qual o diferencial?
+- Para quem é útil?
+
+Se NÃO houver informação suficiente, diga apenas: "Projeto em fase inicial. Informações limitadas."
+
+NUNCA mencione: AlphaGate, detecção de CA, análise técnica, monitoramento, pré-lançamento.
+SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
+Retorne APENAS o resumo do projeto, nada mais."""
+
+AI_SUMMARY_USER_PROMPT = """Escreva um resumo breve (máx 65 palavras) em PORTUGUÊS explicando O QUE ESSE PROJETO FAZ:
 
 Projeto: {project_name}
 Chain: {chain}
 Tipo: {project_type}
 Bio: {bio}
 Info do site: {website_summary}
-Lançamento: {launch_info}
 
-Resumo em PORTUGUÊS (máx 400 chars, texto puro):"""
+Foque em: O que é o projeto? O que ele faz? Para que serve?
+Resumo em PORTUGUÊS (máx 65 palavras):"""
 
 
 CALENDAR_USER_PROMPT = """Extract launch date information for @{handle}:
@@ -338,7 +345,7 @@ class CalendarAgent:
         launch_urgency: str = "unknown"
     ) -> str:
         """
-        Generate a short AI summary about the project (max 448 chars).
+        Generate a short AI summary about the project (max 65 words / ~300 chars).
         Used for Telegram messages.
         
         Returns:
@@ -371,9 +378,9 @@ class CalendarAgent:
         
         summary = response.get("content", "").strip()
         
-        # Ensure max 448 chars
-        if len(summary) > 448:
-            summary = summary[:445] + "..."
+        # Ensure max ~300 chars (65 words)
+        if len(summary) > 300:
+            summary = summary[:297] + "..."
         
         self._log(f"[SUMMARY] Generated {len(summary)} chars")
         return summary

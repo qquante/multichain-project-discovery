@@ -326,8 +326,6 @@ class VerifierService:
                         # 3. Now publish with all data
                         self.publish_confirmed_project(result, project)
                         self.log(f"[CALENDAR] Saved @{handle} to launch calendar")
-                        except Exception as cal_e:
-                            self.log(f"[CALENDAR_ERROR] @{handle}: {str(cal_e)[:50]}")
                         
                     elif status == 'rejected':
                         rejected += 1
