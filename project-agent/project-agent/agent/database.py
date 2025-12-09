@@ -599,7 +599,7 @@ def mark_tweet_processed(
 def save_triage_result(result: Dict[str, Any]) -> bool:
     """Save triaged project to database. Returns True if saved, False if duplicate."""
     
-    twitter_handle = result.get('source', {}).get('twitter_handle', '').lstrip('@')
+    twitter_handle = (result.get('source', {}).get('twitter_handle') or '').lstrip('@')
     
     if not twitter_handle:
         return False
@@ -990,7 +990,7 @@ def is_handle_verified(twitter_handle: str) -> bool:
 def save_verification_result(result: Dict[str, Any], triage_data: Dict[str, Any]) -> bool:
     """Save verification result to database."""
     
-    twitter_handle = result.get('twitter_handle', '').lstrip('@')
+    twitter_handle = (result.get('twitter_handle') or '').lstrip('@')
     
     if not twitter_handle:
         return False
@@ -1661,7 +1661,7 @@ def save_fingerprint(data: Dict[str, Any]) -> int:
             model_used, tokens_used, processing_time
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        data.get('twitter_handle', '').lstrip('@'),
+        (data.get('twitter_handle') or '').lstrip('@'),
         data.get('tweet_id'),
         data.get('author_id'),
         data.get('stage'),
@@ -1698,7 +1698,7 @@ def save_fingerprint(data: Dict[str, Any]) -> int:
     
     # === DUAL-WRITE: Sync to Supabase ===
     _sync_to_supabase("decision_fingerprints", {
-        "twitter_handle": data.get('twitter_handle', '').lstrip('@'),
+        "twitter_handle": (data.get('twitter_handle') or '').lstrip('@'),
         "tweet_id": data.get('tweet_id'),
         "author_id": data.get('author_id'),
         "stage": data.get('stage'),
@@ -1901,7 +1901,7 @@ def save_mention(data: Dict[str, Any]) -> int:
     cur.execute('''
         SELECT id FROM mentions 
         WHERE source_tweet_id = ? AND mentioned_handle = ?
-    ''', (data.get('source_tweet_id'), data.get('mentioned_handle', '').lstrip('@')))
+    ''', (data.get('source_tweet_id'), (data.get('mentioned_handle') or '').lstrip('@')))
     
     existing = cur.fetchone()
     if existing:
@@ -1921,12 +1921,12 @@ def save_mention(data: Dict[str, Any]) -> int:
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         data.get('source_tweet_id'),
-        data.get('source_author_handle', '').lstrip('@'),
+        (data.get('source_author_handle') or '').lstrip('@'),
         data.get('source_author_id'),
         data.get('source_author_followers', 0),
         data.get('source_tweet_text'),
         data.get('source_tweet_date'),
-        data.get('mentioned_handle', '').lstrip('@'),
+        (data.get('mentioned_handle') or '').lstrip('@'),
         json.dumps(data.get('mentioned_handles_found', [])),
         data.get('project_name_extracted'),
         data.get('project_ticker_extracted'),
@@ -1950,12 +1950,12 @@ def save_mention(data: Dict[str, Any]) -> int:
     # === DUAL-WRITE: Sync to Supabase ===
     _sync_to_supabase("mentions", {
         "source_tweet_id": data.get('source_tweet_id'),
-        "source_author_handle": data.get('source_author_handle', '').lstrip('@'),
+        "source_author_handle": (data.get('source_author_handle') or '').lstrip('@'),
         "source_author_id": data.get('source_author_id'),
         "source_author_followers": data.get('source_author_followers', 0),
         "source_tweet_text": data.get('source_tweet_text'),
         "source_tweet_date": data.get('source_tweet_date'),
-        "mentioned_handle": data.get('mentioned_handle', '').lstrip('@'),
+        "mentioned_handle": (data.get('mentioned_handle') or '').lstrip('@'),
         "mentioned_handles_found": data.get('mentioned_handles_found', []),
         "project_name_extracted": data.get('project_name_extracted'),
         "project_ticker_extracted": data.get('project_ticker_extracted'),
@@ -2219,7 +2219,7 @@ def save_to_calendar(data: Dict[str, Any]) -> int:
     conn = get_connection()
     cur = conn.cursor()
     
-    twitter_handle = data.get('twitter_handle', '').lstrip('@')
+    twitter_handle = (data.get('twitter_handle') or '').lstrip('@')
     if not twitter_handle:
         conn.close()
         return 0

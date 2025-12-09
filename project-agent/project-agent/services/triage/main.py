@@ -140,7 +140,7 @@ class TriageService:
                 "source_author_id": tweet.get('author_id'),
                 "source_author_followers": tweet.get('author_followers', 0),
                 "source_tweet_text": tweet.get('text', '')[:500],
-                "mentioned_handle": mentioned.get('handle', '').lstrip('@'),
+                "mentioned_handle": (mentioned.get('handle') or '').lstrip('@'),
                 "project_name_extracted": mentioned.get('name_from_tweet') or project_data.get('name'),
                 "project_ticker_extracted": mentioned.get('ticker_from_tweet') or project_data.get('ticker'),
                 "project_chain_extracted": mentioned.get('chain_mentioned') or project_data.get('chain'),

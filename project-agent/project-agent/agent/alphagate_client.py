@@ -57,32 +57,53 @@ class AlphaGateClient:
             time.sleep(self.delay - elapsed)
         self.last_request_time = time.time()
     
-    def _request(self, endpoint: str, params: dict = None) -> Optional[dict]:
-        """Make a request to AlphaGate API."""
+    def _request(self, endpoint: str, params: dict = None, max_retries: int = 3) -> Optional[dict]:
+        """Make a request to AlphaGate API with retry/backoff."""
         self._rate_limit()
         
         url = f"{self.BASE_URL}{endpoint}"
         
-        try:
-            response = self.session.get(url, params=params, timeout=15)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('message') in ['Fetched alerts', 'Fetched data successfully']:
-                    return data.get('data', {})
-                else:
-                    self._log(f"API returned: {data.get('message')}")
-                    return None
-            elif response.status_code == 404:
-                # Project not found in AlphaGate - this is normal
-                return None
-            else:
-                self._log(f"Request failed: {response.status_code}")
-                return None
+        for attempt in range(max_retries):
+            try:
+                response = self.session.get(url, params=params, timeout=15)
                 
-        except Exception as e:
-            self._log(f"Request error: {str(e)[:50]}")
-            return None
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('message') in ['Fetched alerts', 'Fetched data successfully']:
+                        return data.get('data', {})
+                    else:
+                        self._log(f"API returned: {data.get('message')}")
+                        return None
+                elif response.status_code == 404:
+                    # Project not found in AlphaGate - this is normal
+                    return None
+                elif response.status_code >= 500:
+                    # Server error - retry with backoff
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 2  # 2s, 4s, 6s
+                        self._log(f"Server error {response.status_code}, retry {attempt + 1}/{max_retries} in {wait_time}s")
+                        time.sleep(wait_time)
+                        continue
+                    self._log(f"Request failed after {max_retries} retries: {response.status_code}")
+                    return None
+                else:
+                    self._log(f"Request failed: {response.status_code}")
+                    return None
+                    
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                # Connection/timeout error - retry with backoff
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 2  # 2s, 4s, 6s
+                    self._log(f"Connection error, retry {attempt + 1}/{max_retries} in {wait_time}s")
+                    time.sleep(wait_time)
+                    continue
+                self._log(f"Request error after {max_retries} retries: {str(e)[:50]}")
+                return None
+            except Exception as e:
+                self._log(f"Request error: {str(e)[:50]}")
+                return None
+        
+        return None
     
     def get_alerts(self, username: str) -> List[dict]:
         """
