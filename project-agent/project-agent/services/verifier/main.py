@@ -83,7 +83,8 @@ class VerifierService:
             # Basic info
             "twitter_handle": result.get('twitter_handle', ''),
             "project_name": triage_data.get('project_name'),
-            "project_ticker": triage_data.get('project_ticker'),
+            "project_ticker": triage_data.get('project_ticker') or result.get('ticker_confirmed'),
+            "ticker_possibilities": result.get('ticker_possibilities', []),
             "project_type": triage_data.get('project_type'),
             "project_chain": triage_data.get('project_chain'),
             "verification_confidence": result.get('verification_confidence', 0),
@@ -146,10 +147,10 @@ class VerifierService:
             "discovery_source": triage_data.get('discovery_source', 'collector'),
             "discovery_keyword": triage_data.get('discovery_keyword'),
             
-            # Launch info from calendar
-            "launch_date": triage_data.get('launch_date'),
-            "launch_time": triage_data.get('launch_time'),
-            "launch_urgency": triage_data.get('launch_urgency', 'unknown'),
+            # Launch info from calendar (use result first, then triage_data as fallback)
+            "launch_date": result.get('launch_date') or triage_data.get('launch_date'),
+            "launch_time": result.get('launch_time') or triage_data.get('launch_time'),
+            "launch_urgency": result.get('launch_urgency') or triage_data.get('launch_urgency', 'unknown'),
             "launch_platform": triage_data.get('launch_platform'),
             
             # Reasoning
@@ -271,38 +272,15 @@ class VerifierService:
                     if status == 'confirmed':
                         confirmed += 1
                         
-                        # Generate AI summary in PT-BR BEFORE publishing
-                        try:
-                            user_profile_sum = result.get('user_profile', {}) or {}
-                            site_analysis_sum = result.get('site_analysis', {}) or {}
-                            ai_summary = self.calendar_agent.generate_project_summary(
-                                project_name=project.get('project_name'),
-                                chain=project.get('project_chain', 'unknown'),
-                                project_type=project.get('project_type'),
-                                bio=user_profile_sum.get('bio', ''),
-                                website_summary=site_analysis_sum.get('content_preview', ''),
-                                launch_date=result.get('launch_date'),
-                                launch_urgency=result.get('launch_urgency', 'unknown')
-                            )
-                            result['ai_summary'] = ai_summary
-                            self.log(f"[AI_SUMMARY] Generated {len(ai_summary)} chars for @{handle}")
-                        except Exception as sum_e:
-                            self.log(f"[AI_SUMMARY_ERROR] @{handle}: {str(sum_e)[:50]}")
-                            result['ai_summary'] = ''
+                        user_profile = result.get('user_profile', {}) or {}
+                        site_analysis = result.get('site_analysis', {}) or {}
+                        raw_tweets = result.get('raw_tweets', [])
+                        pinned_tweet = result.get('pinned_tweet', '')
+                        website_content = site_analysis.get('raw_content', '') or site_analysis.get('content_preview', '')
                         
-                        self.publish_confirmed_project(result, project)
-                        
-                        # Save to calendar with date extraction
+                        # 1. Analyze calendar data FIRST to get ticker_possibilities
                         try:
-                            user_profile = result.get('user_profile', {}) or {}
-                            site_analysis = result.get('site_analysis', {}) or {}
-                            
-                            # Get raw tweets for better date extraction
-                            raw_tweets = result.get('raw_tweets', [])
-                            pinned_tweet = result.get('pinned_tweet', '')
-                            website_content = site_analysis.get('raw_content', '') or site_analysis.get('content_preview', '')
-                            
-                            self.calendar_agent.analyze_and_save(
+                            calendar_result = self.calendar_agent.analyze_and_save(
                                 twitter_handle=handle,
                                 bio=user_profile.get('bio', ''),
                                 tweets=raw_tweets,
@@ -314,7 +292,40 @@ class VerifierService:
                                 current_urgency=result.get('launch_urgency', 'unknown'),
                                 current_launch_date=result.get('launch_date')
                             )
-                            self.log(f"[CALENDAR] Saved @{handle} to launch calendar")
+                            # Get ticker_possibilities from calendar analysis
+                            if calendar_result:
+                                result['ticker_possibilities'] = calendar_result.get('ticker_possibilities', [])
+                                result['ticker_confirmed'] = calendar_result.get('ticker_confirmed')
+                                # Update launch info if found
+                                if calendar_result.get('launch_date'):
+                                    result['launch_date'] = calendar_result.get('launch_date')
+                                    result['launch_time'] = calendar_result.get('launch_time')
+                                    result['launch_urgency'] = calendar_result.get('launch_urgency')
+                            self.log(f"[CALENDAR] Analyzed @{handle} | tickers={result.get('ticker_possibilities', [])[:2]}")
+                        except Exception as cal_e:
+                            self.log(f"[CALENDAR_ERROR] @{handle}: {str(cal_e)[:50]}")
+                            result['ticker_possibilities'] = []
+                        
+                        # 2. Generate AI summary in PT-BR
+                        try:
+                            ai_summary = self.calendar_agent.generate_project_summary(
+                                project_name=project.get('project_name'),
+                                chain=project.get('project_chain', 'unknown'),
+                                project_type=project.get('project_type'),
+                                bio=user_profile.get('bio', ''),
+                                website_summary=site_analysis.get('content_preview', ''),
+                                launch_date=result.get('launch_date'),
+                                launch_urgency=result.get('launch_urgency', 'unknown')
+                            )
+                            result['ai_summary'] = ai_summary
+                            self.log(f"[AI_SUMMARY] Generated {len(ai_summary)} chars for @{handle}")
+                        except Exception as sum_e:
+                            self.log(f"[AI_SUMMARY_ERROR] @{handle}: {str(sum_e)[:50]}")
+                            result['ai_summary'] = ''
+                        
+                        # 3. Now publish with all data
+                        self.publish_confirmed_project(result, project)
+                        self.log(f"[CALENDAR] Saved @{handle} to launch calendar")
                         except Exception as cal_e:
                             self.log(f"[CALENDAR_ERROR] @{handle}: {str(cal_e)[:50]}")
                         
