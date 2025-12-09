@@ -749,6 +749,44 @@ def get_project_favorites(twitter_handle: str) -> List[Dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
+def has_user_favorited(twitter_handle: str, user_id: str) -> bool:
+    """Check if a specific user has favorited a project."""
+    if not twitter_handle or not user_id:
+        return False
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        '''
+        SELECT 1 FROM project_favorites
+        WHERE LOWER(twitter_handle) = LOWER(?) AND user_id = ?
+        ''',
+        (twitter_handle.lstrip('@'), user_id)
+    )
+    exists = cur.fetchone() is not None
+    conn.close()
+    return exists
+
+
+def remove_project_favorite(twitter_handle: str, user_id: str) -> bool:
+    """Remove a favorite entry; returns True if deleted, False if not found."""
+    if not twitter_handle or not user_id:
+        return False
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            '''
+            DELETE FROM project_favorites
+            WHERE LOWER(twitter_handle) = LOWER(?) AND user_id = ?
+            ''',
+            (twitter_handle.lstrip('@'), user_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def get_all_favorited_handles() -> List[str]:
     """Return all unique twitter handles that have been favorited by anyone."""
     conn = get_connection()

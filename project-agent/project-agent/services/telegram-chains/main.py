@@ -133,10 +133,28 @@ def format_discovery_source(data: dict) -> str:
     
     if source == 'alphagate':
         return "🎯 ALPHAGATE"
+    elif source == 'alpha_followers':
+        return "👤 ALPHA FOLLOWERS"
     elif keyword:
-        return f"🔍 KEYWORD: <code>{keyword}</code>"
+        return "🔍 COLLECTOR"
     else:
         return "🔍 COLLECTOR"
+
+
+def format_discovery_from(data: dict) -> str:
+    """Format the FROM line based on discovery source."""
+    source = data.get('discovery_source', 'collector')
+    keyword = data.get('discovery_keyword', '')
+    
+    if source == 'alphagate':
+        return keyword or 'AlphaGate Discovery'
+    elif source == 'alpha_followers':
+        # keyword contains the seed handle like @mikedemarais
+        return f"ALPHA {keyword}" if keyword else "Alpha Followers"
+    elif keyword:
+        return f"Keyword [{keyword}]"
+    else:
+        return "Keyword Tracker"
 
 
 def format_launch_info(data: dict) -> str:
@@ -297,15 +315,15 @@ def format_message(data: dict, channel: str) -> str:
             # Don't truncate - show full summary
             ai_section = f"\n\n💬 <i>{ai_clean}</i>"
 
-        # Likes block (to append at bottom if provided)
+        # Likes block (to append at bottom if provided) - extra newline for visible spacing
         liked_by = data.get('liked_by')
         liked_section = ""
         if liked_by:
-            liked_section = f"\n\n❤️ Liked by {liked_by}"
+            liked_section = f"\n\n\n❤️ Liked by {liked_by}"
         
         message = f"""🟢 <b>NEW PROJECT</b> [{source_badge}]
 
-🌎 FROM: {data.get('discovery_keyword') or 'AlphaGate Discovery' if data.get('discovery_source') == 'alphagate' else data.get('discovery_keyword') or 'Keyword Tracker'}
+🌎 FROM: {format_discovery_from(data)}
 {chain_emoji} CHAIN: {chain.upper()}
 
 ━━━━━━━━━━━━━━━━━━

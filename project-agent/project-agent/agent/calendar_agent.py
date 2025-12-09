@@ -69,10 +69,12 @@ PRIORIDADE: Explique O QUE O PROJETO FAZ e PARA QUE SERVE.
 - Qual o diferencial?
 - Para quem é útil?
 
-ANALISE a bio E os tweets para entender o projeto.
-Se NÃO houver informação suficiente, diga: "Projeto em fase inicial. Detalhes ainda não divulgados."
+ANALISE a bio, tweets E website para entender o projeto.
+SEMPRE tente descrever o projeto com base nas informações disponíveis.
+Use pistas do nome, bio, tweets e links para inferir o propósito.
 
 NUNCA mencione: AlphaGate, detecção de CA, análise técnica, monitoramento, pré-lançamento, "representa um projeto real".
+NUNCA diga: "Projeto em fase inicial", "Detalhes não divulgados", "Informações limitadas".
 SEMPRE responda em PORTUGUÊS BRASILEIRO (PT-BR).
 
 FORMATO DE RESPOSTA: Texto puro, SEM JSON, SEM chaves {}, SEM aspas.

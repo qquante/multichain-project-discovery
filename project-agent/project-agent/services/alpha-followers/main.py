@@ -92,6 +92,8 @@ class AlphaFollowersService:
                 "tweet_id": None,
                 "tweet_date": None,
                 "tweet_text_preview": f"Found via alpha followers @{seed}",
+                "discovery_source": "alpha_followers",
+                "discovery_keyword": f"@{seed}",
             }
         }
         # Save triage result only if not already triaged/verified

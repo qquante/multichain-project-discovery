@@ -209,22 +209,18 @@ def format_alert_message(alert_type: str, projects: List[Dict], favorites_handle
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     ]
     
-    # FAVORITES section first (if any)
+    # FAVORITES section first (if any) - simple format without bullets/links
     if favorites_projects:
-        lines.append(f"\n❤️ <b>FAVORITES</b> ({len(favorites_projects)})")
+        # Show count only if more than 1
+        if len(favorites_projects) > 1:
+            lines.append(f"\n❤️ <b>FAVORITES</b> ({len(favorites_projects)})")
+        else:
+            lines.append(f"\n❤️ <b>FAVORITES</b>")
         for p in favorites_projects:
             handle = p.get('twitter_handle', '').lstrip('@')
             chain = (p.get('chain') or 'unknown').upper()
-            name = p.get('project_name', '') or ''
-            ticker = p.get('project_ticker', '')
-            
-            # Simple format for favorites: @handle - CHAIN
-            fav_line = f"• <a href=\"https://x.com/{handle}\">@{handle}</a> - {chain}"
-            if name:
-                fav_line += f" | {name}"
-            if ticker:
-                fav_line += f" | {ticker}"
-            lines.append(fav_line)
+            # Simple format: @handle - CHAIN (no bullets, no links, no extra info)
+            lines.append(f"@{handle} - {chain}")
     
     # Chain sections
     for chain in sorted(grouped.keys()):

@@ -18,6 +18,8 @@ from agent.database import (
     init_db,
     add_project_favorite,
     get_project_favorites,
+    has_user_favorited,
+    remove_project_favorite,
     stop_monitoring_by_handle,
 )
 
@@ -49,7 +51,7 @@ def save_offset(offset: int):
         pass
 
 
-def send_message(chat_id: int, text: str, reply_to: int = None):
+def send_message(chat_id: int, text: str, reply_to: int = None, max_retries: int = 3):
     payload = {
         "chat_id": chat_id,
         "text": text,
@@ -58,7 +60,16 @@ def send_message(chat_id: int, text: str, reply_to: int = None):
     }
     if reply_to:
         payload["reply_to_message_id"] = reply_to
-    requests.post(f"{API_URL}/sendMessage", json=payload, timeout=10)
+    
+    for attempt in range(max_retries):
+        try:
+            requests.post(f"{API_URL}/sendMessage", json=payload, timeout=10)
+            return
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            if attempt < max_retries - 1:
+                time.sleep((attempt + 1) * 2)
+                continue
+            log(f"Send failed after {max_retries} retries")
 
 
 def edit_message(chat_id: int, message_id: int, text: str, reply_markup: Dict = None):
@@ -74,11 +85,35 @@ def edit_message(chat_id: int, message_id: int, text: str, reply_markup: Dict = 
     requests.post(f"{API_URL}/editMessageText", json=payload, timeout=10)
 
 
-def add_like_to_text(text: str, username: str) -> str:
-    liked_line = f"❤️ Liked by @{username}"
-    if "Liked by" in text:
-        return text  # already added
-    return text + f"\n{liked_line}"
+def build_likes_line(favorites: List[Dict]) -> str:
+    """Build the likes line from all favorites."""
+    if not favorites:
+        return ""
+    usernames = [f.get('username', '').lstrip('@') for f in favorites if f.get('username')]
+    if not usernames:
+        return ""
+    # Format: ❤️ Liked by @user1, @user2, @user3
+    formatted = ", ".join([f"@{u}" for u in usernames])
+    return f"❤️ Liked by {formatted}"
+
+
+def update_likes_in_text(text: str, favorites: List[Dict]) -> str:
+    """Update or remove the likes line in the message text."""
+    # Remove existing likes line(s)
+    lines = text.split('\n')
+    new_lines = [ln for ln in lines if not ln.strip().startswith('❤️ Liked by')]
+    
+    # Remove trailing empty lines
+    while new_lines and not new_lines[-1].strip():
+        new_lines.pop()
+    
+    # Add new likes line if there are favorites
+    likes_line = build_likes_line(favorites)
+    if likes_line:
+        new_lines.append('')  # Empty line for spacing
+        new_lines.append(likes_line)
+    
+    return '\n'.join(new_lines)
 
 
 def handle_favorite(cb: Dict[str, Any], handle: str):
@@ -87,12 +122,29 @@ def handle_favorite(cb: Dict[str, Any], handle: str):
     user_id = str(user.get("id"))
     chat_id = cb["message"]["chat"]["id"]
     message = cb["message"]
-
-    if add_project_favorite(handle, user_id, username=f"@{username}", chat_id=str(chat_id)):
-        text = message.get("text", "")
-        new_text = add_like_to_text(text, username)
+    
+    # Toggle: if already liked, remove; otherwise add
+    if has_user_favorited(handle, user_id):
+        # REMOVE like
+        remove_project_favorite(handle, user_id)
+        action_text = "Like removido!"
+        log(f"[UNLIKE] @{handle} by {username}")
+    else:
+        # ADD like
+        add_project_favorite(handle, user_id, username=f"@{username}", chat_id=str(chat_id))
+        action_text = "Favoritado!"
+        log(f"[LIKE] @{handle} by {username}")
+    
+    # Get all current favorites for this project and update message
+    all_favorites = get_project_favorites(handle)
+    text = message.get("text", "")
+    new_text = update_likes_in_text(text, all_favorites)
+    
+    # Only edit if text changed
+    if new_text != text:
         edit_message(chat_id, message["message_id"], new_text, message.get("reply_markup"))
-    requests.post(f"{API_URL}/answerCallbackQuery", json={"callback_query_id": cb["id"], "text": "Favoritado!"}, timeout=5)
+    
+    requests.post(f"{API_URL}/answerCallbackQuery", json={"callback_query_id": cb["id"], "text": action_text}, timeout=5)
 
 
 def handle_stop(cb: Dict[str, Any], handle: str):
@@ -143,12 +195,17 @@ def handle_callback(cb: Dict[str, Any]):
 def poll():
     offset = load_offset()
     log("Chains callback receiver started (polling).")
+    consecutive_errors = 0
     while True:
         try:
             resp = requests.get(f"{API_URL}/getUpdates", params={"offset": offset + 1, "timeout": 30}, timeout=40)
             if resp.status_code != 200:
-                time.sleep(2)
+                consecutive_errors += 1
+                wait_time = min(consecutive_errors * 5, 60)  # Max 60s backoff
+                log(f"HTTP {resp.status_code}, waiting {wait_time}s...")
+                time.sleep(wait_time)
                 continue
+            consecutive_errors = 0  # Reset on success
             updates = resp.json().get("result", [])
             for upd in updates:
                 offset = max(offset, upd.get("update_id", 0))
@@ -157,9 +214,14 @@ def poll():
                 elif "message" in upd:
                     handle_command(upd["message"])
             save_offset(offset)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            consecutive_errors += 1
+            wait_time = min(consecutive_errors * 5, 60)  # Max 60s backoff
+            log(f"Connection error, retry in {wait_time}s: {str(e)[:50]}")
+            time.sleep(wait_time)
         except Exception as e:
             log(f"Error polling: {str(e)[:100]}")
-            time.sleep(2)
+            time.sleep(5)
 
 
 if __name__ == "__main__":

@@ -88,7 +88,7 @@ class TelegramHigh:
         now = time.time()
         return now >= self.rate_limit_until and (now - self.last_send_time) >= RATE_LIMIT_DELAY
     
-    def send_message(self, topic_id: int, text: str, buttons: List = None) -> bool:
+    def send_message(self, topic_id: int, text: str, buttons: List = None, max_retries: int = 3) -> bool:
         if not text:
             return False
         
@@ -102,24 +102,38 @@ class TelegramHigh:
         if buttons:
             payload["reply_markup"] = {"inline_keyboard": buttons}
         
-        try:
-            response = requests.post(f"{self.api_url}/sendMessage", json=payload, timeout=15)
-            self.last_send_time = time.time()
-            
-            if response.status_code == 200:
-                return True
-            if response.status_code == 429:
-                retry_after = response.json().get('parameters', {}).get('retry_after', 30)
-                self.rate_limit_until = time.time() + retry_after + 1
-                self.log(f"[RATE_LIMIT] {retry_after}s - will retry")
-                return False
-            if response.status_code == 400:
-                del payload["parse_mode"]
-                r2 = requests.post(f"{self.api_url}/sendMessage", json=payload, timeout=15)
-                return r2.status_code == 200
-            self.log(f"[ERROR] {response.status_code}: {response.text[:80]}")
-        except Exception as e:
-            self.log(f"[ERROR] {str(e)[:50]}")
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(f"{self.api_url}/sendMessage", json=payload, timeout=15)
+                self.last_send_time = time.time()
+                
+                if response.status_code == 200:
+                    return True
+                if response.status_code == 429:
+                    retry_after = response.json().get('parameters', {}).get('retry_after', 30)
+                    self.rate_limit_until = time.time() + retry_after + 1
+                    self.log(f"[RATE_LIMIT] {retry_after}s - will retry")
+                    return False
+                if response.status_code == 400:
+                    del payload["parse_mode"]
+                    r2 = requests.post(f"{self.api_url}/sendMessage", json=payload, timeout=15)
+                    return r2.status_code == 200
+                if response.status_code >= 500:
+                    # Server error - retry with backoff
+                    if attempt < max_retries - 1:
+                        self.log(f"[RETRY] Server {response.status_code}, attempt {attempt + 1}/{max_retries}")
+                        time.sleep((attempt + 1) * 2)
+                        continue
+                self.log(f"[ERROR] {response.status_code}: {response.text[:80]}")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                if attempt < max_retries - 1:
+                    self.log(f"[RETRY] Connection error, attempt {attempt + 1}/{max_retries}")
+                    time.sleep((attempt + 1) * 2)
+                    continue
+                self.log(f"[ERROR] {str(e)[:50]}")
+            except Exception as e:
+                self.log(f"[ERROR] {str(e)[:50]}")
+                break
         return False
     
     def format_message(self, channel: str, data: Dict) -> Tuple[int, str, List]:

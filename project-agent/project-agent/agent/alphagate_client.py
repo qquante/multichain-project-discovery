@@ -65,7 +65,7 @@ class AlphaGateClient:
         
         for attempt in range(max_retries):
             try:
-                response = self.session.get(url, params=params, timeout=15)
+                response = self.session.get(url, params=params, timeout=30)
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -80,7 +80,7 @@ class AlphaGateClient:
                 elif response.status_code >= 500:
                     # Server error - retry with backoff
                     if attempt < max_retries - 1:
-                        wait_time = (attempt + 1) * 2  # 2s, 4s, 6s
+                        wait_time = (attempt + 1) * 3  # 3s, 6s, 9s
                         self._log(f"Server error {response.status_code}, retry {attempt + 1}/{max_retries} in {wait_time}s")
                         time.sleep(wait_time)
                         continue
@@ -93,7 +93,7 @@ class AlphaGateClient:
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
                 # Connection/timeout error - retry with backoff
                 if attempt < max_retries - 1:
-                    wait_time = (attempt + 1) * 2  # 2s, 4s, 6s
+                    wait_time = (attempt + 1) * 3  # 3s, 6s, 9s
                     self._log(f"Connection error, retry {attempt + 1}/{max_retries} in {wait_time}s")
                     time.sleep(wait_time)
                     continue
