@@ -23,6 +23,7 @@ from .ca_detector import is_project_launched, detect_ca
 
 # Import user clients
 from users.api_client import UserInfoClient, UserTweetsClient
+from agent.twitter_cache import get_or_fetch_user_tweets, get_or_fetch_user_info
 
 
 class ProjectVerifier:
@@ -52,24 +53,26 @@ class ProjectVerifier:
         tweets = []
         pin_tweet = None
         
-        # Try to get user info
+        # Try cache/user info first
         if author_id:
-            user_info = self.user_info_client.get_user_by_id(author_id)
+            user_info = get_or_fetch_user_info(
+                self.user_info_client,
+                author_id=author_id,
+                handle=twitter_handle,
+                ttl_hours=6
+            )
         
-        # Get recent tweets
+        # Get recent tweets (cached)
         try:
-            if author_id:
-                response = self.user_tweets_client.get_user_tweets(
-                    user_id=author_id,
-                    include_replies=False
-                )
-            else:
-                response = self.user_tweets_client.get_user_tweets(
-                    user_name=twitter_handle.lstrip('@'),
-                    include_replies=False
-                )
+            response = get_or_fetch_user_tweets(
+                self.user_tweets_client,
+                handle=twitter_handle,
+                author_id=author_id,
+                include_replies=False,
+                ttl_hours=6
+            )
             
-            tweets = response.get('tweets', [])
+            tweets = response.get('tweets', []) or []
             pin_tweet = response.get('pin_tweet')  # CRITICAL: Capture pinned tweet!
             
             # CRITICAL: Include pinned tweet at the START of the list
@@ -92,7 +95,7 @@ class ProjectVerifier:
             
             # If we didn't get user_info, extract from first tweet
             if not user_info and tweets:
-                user_info = tweets[0].get('author', {})
+                user_info = tweets[0].get('author', {}) or {}
                 
         except Exception as e:
             self._log(f"[ERROR] Failed to fetch tweets: {e}")

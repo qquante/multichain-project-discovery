@@ -18,6 +18,7 @@ sys.path.insert(0, '/app/shared')
 sys.path.insert(0, '/app')
 
 from users.api_client import UserTweetsClient
+from agent.twitter_cache import get_or_fetch_user_tweets
 from agent.database import get_connection
 
 # Configuration
@@ -59,12 +60,15 @@ class AbandonedChecker:
     def check_latest_tweet(self, twitter_handle: str) -> dict:
         """Check the latest tweet from a user."""
         try:
-            result = self.tweets_client.get_user_tweets(
-                user_name=twitter_handle.lstrip('@'),
-                include_replies=False
+            result = get_or_fetch_user_tweets(
+                self.tweets_client,
+                handle=twitter_handle,
+                author_id=None,
+                include_replies=False,
+                ttl_hours=6
             )
             
-            tweets = result.get('tweets', [])
+            tweets = result.get('tweets', []) or []
             
             if tweets:
                 latest = tweets[0]

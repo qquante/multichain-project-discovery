@@ -29,6 +29,7 @@ from .database import (
 )
 
 from users.api_client import UserInfoClient, UserTweetsClient
+from agent.twitter_cache import get_or_fetch_user_tweets, get_or_fetch_user_info
 
 
 def parse_launch_date(date_str: str) -> Optional[datetime]:
@@ -233,22 +234,29 @@ class ProjectMonitor:
         # Fetch current data
         self._log(f"[FETCH] Getting latest data...")
         
-        # Get user info
+        # Get user info (cached)
         user_info = {}
         if author_id:
-            result = self.user_info_client.get_users_by_ids([author_id])
-            users = result.get('users', [])
-            if users:
-                user_info = users[0]
-        
-        # Get latest tweets
-        tweets = []
-        if twitter_handle:
-            result = self.user_tweets_client.get_user_tweets(
-                user_name=twitter_handle.lstrip('@'),
-                include_replies=False
+            cached_info = get_or_fetch_user_info(
+                self.user_info_client,
+                author_id=author_id,
+                handle=twitter_handle,
+                ttl_hours=6
             )
-            tweets = result.get('tweets', [])
+            if cached_info:
+                user_info = cached_info
+        
+        # Get latest tweets (cached)
+        tweets = []
+        if twitter_handle or author_id:
+            result = get_or_fetch_user_tweets(
+                self.user_tweets_client,
+                handle=twitter_handle,
+                author_id=author_id,
+                include_replies=False,
+                ttl_hours=6
+            )
+            tweets = result.get('tweets', []) or []
         
         current_bio = user_info.get('description', '')
         current_followers = user_info.get('followers', 0)

@@ -220,6 +220,7 @@ def create_buttons(handle: str) -> list:
         [
             {"text": "👤 Profile", "url": f"https://x.com/{handle}"},
             {"text": "🎯 Alphagate", "url": f"https://alphagate.io/project/{handle}"},
+            {"text": "❤️ LIKE", "callback_data": f"fav:{handle}"},
             {"text": "🛑 Stop Track", "callback_data": f"stop:{handle}"}
         ]
     ]
@@ -295,6 +296,12 @@ def format_message(data: dict, channel: str) -> str:
             
             # Don't truncate - show full summary
             ai_section = f"\n\n💬 <i>{ai_clean}</i>"
+
+        # Likes block (to append at bottom if provided)
+        liked_by = data.get('liked_by')
+        liked_section = ""
+        if liked_by:
+            liked_section = f"\n\n❤️ Liked by {liked_by}"
         
         message = f"""🟢 <b>NEW PROJECT</b> [{source_badge}]
 
@@ -313,7 +320,7 @@ def format_message(data: dict, channel: str) -> str:
 🔑 Token: {token_info}
 🎒 Type: {project_type}
 
-🚀 Launch at: {launch_info}{ai_section}"""
+🚀 Launch at: {launch_info}{ai_section}{liked_section}"""
     
     else:
         # === UPDATE MESSAGE ===

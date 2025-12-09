@@ -326,3 +326,48 @@ class UserTweetsClient:
         
         return stats
 
+
+class UserFollowingsClient:
+    """Client for GET /twitter/user/followings endpoint."""
+    
+    def __init__(self, api_key: str = API_KEY, verbose: bool = True):
+        self.api_key = api_key
+        self.base_url = f"{BASE_URL}/twitter/user/followings"
+        self.headers = {"X-API-Key": api_key}
+        self.verbose = verbose
+    
+    def _log(self, msg: str):
+        if self.verbose:
+            print(msg)
+    
+    def get_user_followings(
+        self,
+        user_name: str,
+        page_size: int = 20,
+        cursor: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Get user followings (most recent first).
+        Only the first page is used by the alpha-followers service.
+        """
+        params = {
+            "userName": user_name,
+            "pageSize": page_size
+        }
+        if cursor:
+            params["cursor"] = cursor
+        
+        url = f"{self.base_url}?{urlencode(params)}"
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Normalize keys defensively
+        return {
+            "followings": data.get("followings", []),
+            "has_next_page": data.get("has_next_page", False),
+            "next_cursor": data.get("next_cursor", ""),
+            "status": data.get("status", ""),
+            "message": data.get("message", "")
+        }
+

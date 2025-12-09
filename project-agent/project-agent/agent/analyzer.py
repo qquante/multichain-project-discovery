@@ -98,11 +98,15 @@ class TweetAnalyzer:
         if entities_json:
             try:
                 entities = json.loads(entities_json) if isinstance(entities_json, str) else entities_json
-                real_mentions = [m.get('screen_name', '').lower() for m in entities.get('user_mentions', []) if m.get('screen_name')]
+                real_mentions = [
+                    (m.get('screen_name') or '').lower()
+                    for m in entities.get('user_mentions', [])
+                    if m.get('screen_name')
+                ]
             except:
                 pass
         
-        author_lower = tweet.get('author_username', '').lower()
+        author_lower = (tweet.get('author_username') or '').lower()
         is_author_the_project = classifier_result.get('is_author_the_project', False)
         mentioned_projects = classifier_result.get('mentioned_projects', [])
         

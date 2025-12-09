@@ -278,13 +278,18 @@ class CalendarAgent:
         else:
             ticker_possibilities_json = None
         
+        # Normalize chain to avoid NULL constraint issues
+        normalized_chain = chain or analysis.get('chain') or 'unknown'
+        if not normalized_chain:
+            normalized_chain = 'unknown'
+
         calendar_data = {
             'twitter_handle': twitter_handle,
             'project_id': project_id,
             'project_name': project_name,
             'project_ticker': ticker,
             'ticker_possibilities': ticker_possibilities_json,
-            'chain': chain,
+            'chain': normalized_chain,
             'launch_date': analysis.get('launch_date'),
             'launch_time': analysis.get('launch_time'),
             'launch_date_raw': analysis.get('launch_date_raw'),

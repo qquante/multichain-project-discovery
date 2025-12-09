@@ -26,7 +26,9 @@ from agent.database import (
     get_calendar_by_urgency,
     get_calendar_pending_alerts,
     mark_calendar_alert_sent,
-    get_calendar_stats
+    get_calendar_stats,
+    get_all_favorited_handles,
+    get_favorites_with_chain
 )
 
 # Configuration
@@ -48,15 +50,15 @@ def log(msg: str):
 def get_chain_emoji(chain: str) -> str:
     """Get emoji for chain (8 chains)."""
     emojis = {
-        'solana': '🟢',
+        'solana': '🟣',
         'base': '🔵',
-        'ethereum': '🟣',
-        'bsc': '🟡',
-        'bnb': '🟡',
+        'ethereum': '🔷',
+        'bsc': '🔶',
+        'bnb': '🔶',
         'megaeth': '⚡',
         'monad': '🟪',
         'berachain': '🐻',
-        'other': '🔶',
+        'other': '⚪',
         'unknown': '❓'
     }
     return emojis.get(chain.lower() if chain else 'unknown', '🔷')
@@ -164,11 +166,16 @@ def get_possible_tickers(project: Dict) -> str:
     return None
 
 
-def format_alert_message(alert_type: str, projects: List[Dict]) -> str:
-    """Format alert message with time remaining, grouped by chain."""
+def format_alert_message(alert_type: str, projects: List[Dict], favorites_handles: List[str] = None) -> str:
+    """Format alert message with time remaining, grouped by chain.
+    Shows FAVORITES section first if any favorited projects are launching.
+    """
     
     if not projects:
         return None
+    
+    favorites_handles = favorites_handles or []
+    favorites_set = set(h.lower().lstrip('@') for h in favorites_handles)
     
     # Header based on alert type
     if alert_type == 'imminent':
@@ -182,8 +189,19 @@ def format_alert_message(alert_type: str, projects: List[Dict]) -> str:
     else:
         header = "🚀 LAUNCH ALERT"
     
-    # Group by chain
-    grouped = group_by_chain(projects)
+    # Separate favorites from regular projects
+    favorites_projects = []
+    regular_projects = []
+    
+    for p in projects:
+        handle = (p.get('twitter_handle') or '').lower().lstrip('@')
+        if handle in favorites_set:
+            favorites_projects.append(p)
+        else:
+            regular_projects.append(p)
+    
+    # Group regular by chain
+    grouped = group_by_chain(regular_projects)
     
     # Build message
     lines = [
@@ -191,6 +209,24 @@ def format_alert_message(alert_type: str, projects: List[Dict]) -> str:
         "━━━━━━━━━━━━━━━━━━━━━━━━"
     ]
     
+    # FAVORITES section first (if any)
+    if favorites_projects:
+        lines.append(f"\n❤️ <b>FAVORITES</b> ({len(favorites_projects)})")
+        for p in favorites_projects:
+            handle = p.get('twitter_handle', '').lstrip('@')
+            chain = (p.get('chain') or 'unknown').upper()
+            name = p.get('project_name', '') or ''
+            ticker = p.get('project_ticker', '')
+            
+            # Simple format for favorites: @handle - CHAIN
+            fav_line = f"• <a href=\"https://x.com/{handle}\">@{handle}</a> - {chain}"
+            if name:
+                fav_line += f" | {name}"
+            if ticker:
+                fav_line += f" | {ticker}"
+            lines.append(fav_line)
+    
+    # Chain sections
     for chain in sorted(grouped.keys()):
         chain_projects = grouped[chain]
         emoji = get_chain_emoji(chain)
@@ -297,11 +333,16 @@ async def check_and_send_alerts(redis_client):
     
     alerts_sent = 0
     
+    # Get all favorited handles (used to highlight in alerts)
+    favorited_handles = get_all_favorited_handles()
+    if favorited_handles:
+        log(f"[FAVORITES] {len(favorited_handles)} handles favorited")
+    
     # 1. Check imminent launches
     imminent = get_calendar_pending_alerts('imminent')
     if imminent:
         log(f"[IMMINENT] {len(imminent)} projects")
-        message = format_alert_message('imminent', imminent)
+        message = format_alert_message('imminent', imminent, favorited_handles)
         if message and send_telegram_alert(message):
             for p in imminent:
                 mark_calendar_alert_sent(p['id'], 'imminent')
@@ -313,7 +354,7 @@ async def check_and_send_alerts(redis_client):
     today = get_calendar_pending_alerts('today')
     if today:
         log(f"[TODAY] {len(today)} projects")
-        message = format_alert_message('today', today)
+        message = format_alert_message('today', today, favorited_handles)
         if message and send_telegram_alert(message):
             for p in today:
                 mark_calendar_alert_sent(p['id'], 'today')
@@ -325,7 +366,7 @@ async def check_and_send_alerts(redis_client):
     tomorrow = get_calendar_pending_alerts('24h')
     if tomorrow:
         log(f"[24H] {len(tomorrow)} projects")
-        message = format_alert_message('24h', tomorrow)
+        message = format_alert_message('24h', tomorrow, favorited_handles)
         if message and send_telegram_alert(message):
             for p in tomorrow:
                 mark_calendar_alert_sent(p['id'], '24h')
@@ -337,7 +378,7 @@ async def check_and_send_alerts(redis_client):
     week = get_calendar_pending_alerts('7d')
     if week:
         log(f"[7D] {len(week)} projects")
-        message = format_alert_message('7d', week)
+        message = format_alert_message('7d', week, favorited_handles)
         if message and send_telegram_alert(message):
             for p in week:
                 mark_calendar_alert_sent(p['id'], '7d')

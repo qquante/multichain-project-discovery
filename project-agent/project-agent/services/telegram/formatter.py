@@ -82,11 +82,14 @@ def build_buttons(
         buttons.append(row1)
     
     # Row 2: Delete Monitoring (only for Stage 3)
-    if show_delete and twitter_handle:
+    if twitter_handle:
         handle = twitter_handle.lstrip('@')
-        buttons.append([
-            {"text": "❌ Deletar Monitoramento", "callback_data": f"delete_monitor:{handle}"}
-        ])
+        row2 = []
+        if show_delete:
+            row2.append({"text": "❌ Deletar Monitoramento", "callback_data": f"delete_monitor:{handle}"})
+        # Favorite button
+        row2.append({"text": "⭐️ Favorite", "callback_data": f"fav:{handle}"})
+        buttons.append(row2)
     
     return buttons
 

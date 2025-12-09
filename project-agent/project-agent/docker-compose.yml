@@ -178,6 +178,27 @@ services:
         condition: service_healthy
     restart: always
 
+  # Alpha Followers (fetches followings of seed profiles every 12h)
+  alpha-followers:
+    build:
+      context: .
+      dockerfile: services/alpha-followers/Dockerfile
+    container_name: agent-alpha-followers
+    volumes:
+      - db-data:/app/data
+    environment:
+      - REDIS_URL=redis://redis:6388
+      - TWITTER_API_KEY=${TWITTER_API_KEY:-[REMOVED_CREDENTIAL]}
+      - ALPHA_FOLLOWERS_INTERVAL_HOURS=12
+      - DB_PATH=/app/data
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_ENABLED=${SUPABASE_ENABLED:-true}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
   # AlphaGate Collector (fetches pre-filtered projects from alphagate.io)
   alphagate:
     build:
@@ -197,6 +218,22 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_ENABLED=${SUPABASE_ENABLED:-true}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: services/telegram-bot/Dockerfile
+    container_name: agent-telegram-bot
+    volumes:
+      - db-data:/app/data
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - REDIS_URL=redis://redis:6388
+      - DB_PATH=/app/data
     depends_on:
       redis:
         condition: service_healthy
@@ -271,6 +308,23 @@ services:
       - TELEGRAM_CHAT_ID_OTHER=${TELEGRAM_CHAT_ID_OTHER}
       - TELEGRAM_CHAT_ID_UNKNOWN=${TELEGRAM_CHAT_ID_UNKNOWN}
       - TELEGRAM_CHAT_ID_ALL=${TELEGRAM_CHAT_ID_ALL}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  # Telegram Chains Callback (handles fav/stop for chains bot)
+  telegram-chains-callback:
+    build:
+      context: .
+      dockerfile: services/telegram-chains-callback/Dockerfile
+    container_name: agent-telegram-chains-callback
+    volumes:
+      - db-data:/app/data
+    environment:
+      - TELEGRAM_BOT_TOKEN_CHAINS=${TELEGRAM_BOT_TOKEN_CHAINS}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_CHAINS}
+      - DB_PATH=/app/data
     depends_on:
       redis:
         condition: service_healthy

@@ -26,8 +26,14 @@ def _sync_to_supabase(table: str, data: dict, upsert: bool = True) -> bool:
 
 
 def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA busy_timeout=30000;")
+    except Exception:
+        pass
     return conn
 
 
@@ -143,6 +149,17 @@ def init_db():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_tweets_author_username ON user_tweets(author_username)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_tweets_created_at ON user_tweets(created_at)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_tweets_fetched_by ON user_tweets(fetched_by_user_id)')
+    
+    # Alpha followers dedupe table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alpha_followings (
+            seed_handle TEXT NOT NULL,
+            following_id TEXT NOT NULL,
+            following_username TEXT,
+            first_seen_at TEXT NOT NULL,
+            PRIMARY KEY (seed_handle, following_id)
+        )
+    ''')
     
     conn.commit()
     conn.close()
@@ -460,6 +477,38 @@ def get_user_tweet_count(user_identifier: str = None) -> int:
     count = cursor.fetchone()['count']
     conn.close()
     return count
+
+
+# Alpha followers dedupe helpers
+def was_following_seen(seed_handle: str, following_id: str) -> bool:
+    if not seed_handle or not following_id:
+        return False
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        'SELECT 1 FROM alpha_followings WHERE seed_handle = ? AND following_id = ?',
+        (seed_handle.lower(), following_id)
+    )
+    seen = cur.fetchone() is not None
+    conn.close()
+    return seen
+
+
+def mark_following_seen(seed_handle: str, following_id: str, following_username: str = ""):
+    if not seed_handle or not following_id:
+        return
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        '''
+        INSERT OR REPLACE INTO alpha_followings
+        (seed_handle, following_id, following_username, first_seen_at)
+        VALUES (?, ?, ?, ?)
+        ''',
+        (seed_handle.lower(), following_id, following_username, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
 
 
 def search_user_tweets(keyword: str, limit: int = 50) -> List[Dict[str, Any]]:

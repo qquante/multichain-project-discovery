@@ -16,14 +16,14 @@ CHAIN_MAP = {
 
 # Chain group to emoji mapping
 CHAIN_EMOJIS = {
-    'solana': '🟢',
+    'solana': '🟣',
     'base': '🔵',
-    'ethereum': '🟣',
-    'bsc': '🟡',
+    'ethereum': '🔷',
+    'bsc': '🔶',
     'megaeth': '⚡',
     'monad': '🟪',
     'berachain': '🐻',
-    'other': '🔶',
+    'other': '⚪',
     'unknown': '❓'
 }
 
@@ -82,4 +82,5 @@ def get_chain_channel(chain: str, channel_type: str = 'confirmed') -> str:
     """
     group = get_chain_group(chain)
     return f"projects:{channel_type}:{group}"
+
 

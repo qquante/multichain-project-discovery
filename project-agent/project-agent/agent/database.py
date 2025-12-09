@@ -27,8 +27,15 @@ def _sync_to_supabase(table: str, data: dict, upsert: bool = True) -> bool:
 
 
 def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)
+    # Apply sane defaults to reduce lock contention
+    conn = sqlite3.connect(db_path, timeout=30)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA busy_timeout=30000;")
+    except Exception:
+        pass
     return conn
 
 
@@ -444,6 +451,32 @@ def init_db():
         )
     ''')
     
+    # Favorites table (who liked a project)
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS project_favorites (
+            twitter_handle TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            username TEXT,
+            chat_id TEXT,
+            first_liked_at TEXT NOT NULL,
+            PRIMARY KEY (twitter_handle, user_id)
+        )
+    ''')
+
+    # Manual add state for /add command
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS add_requests (
+            chat_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            step TEXT NOT NULL,
+            twitter_handle TEXT,
+            summary TEXT,
+            monitor_level TEXT,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (chat_id, user_id)
+        )
+    ''')
+
     # Indexes
     cur.execute('CREATE INDEX IF NOT EXISTS idx_processed_tweet_id ON processed_tweets(tweet_id)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_triaged_handle ON triaged_projects(twitter_handle)')
@@ -669,6 +702,180 @@ def save_triage_result(result: Dict[str, Any]) -> bool:
     })
     
     return True
+
+
+# ============================================
+# Favorites and manual add helpers
+# ============================================
+
+def add_project_favorite(twitter_handle: str, user_id: str, username: str = "", chat_id: str = "") -> bool:
+    """Save a favorite entry; returns True if inserted, False if already exists."""
+    if not twitter_handle or not user_id:
+        return False
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            '''
+            INSERT OR IGNORE INTO project_favorites
+            (twitter_handle, user_id, username, chat_id, first_liked_at)
+            VALUES (?, ?, ?, ?, ?)
+            ''',
+            (twitter_handle.lstrip('@'), user_id, username, chat_id, datetime.now().isoformat())
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def get_project_favorites(twitter_handle: str) -> List[Dict[str, Any]]:
+    """Return all favorites for a handle."""
+    if not twitter_handle:
+        return []
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        '''
+        SELECT user_id, username, chat_id, first_liked_at
+        FROM project_favorites
+        WHERE LOWER(twitter_handle) = LOWER(?)
+        ORDER BY first_liked_at DESC
+        ''',
+        (twitter_handle.lstrip('@'),)
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_all_favorited_handles() -> List[str]:
+    """Return all unique twitter handles that have been favorited by anyone."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT DISTINCT twitter_handle FROM project_favorites')
+    rows = cur.fetchall()
+    conn.close()
+    return [row[0] for row in rows if row[0]]
+
+
+def get_favorites_with_chain() -> List[Dict[str, Any]]:
+    """Return favorited handles with chain info from launch_calendar (for calendar alerts)."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT DISTINCT 
+            pf.twitter_handle,
+            lc.chain,
+            lc.project_name,
+            lc.project_ticker
+        FROM project_favorites pf
+        LEFT JOIN launch_calendar lc ON LOWER(pf.twitter_handle) = LOWER(lc.twitter_handle)
+        WHERE lc.calendar_status NOT IN ('launched', 'cancelled') OR lc.twitter_handle IS NULL
+    ''')
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {
+            'twitter_handle': row[0],
+            'chain': row[1] or 'unknown',
+            'project_name': row[2],
+            'project_ticker': row[3]
+        }
+        for row in rows if row[0]
+    ]
+
+
+def upsert_add_request(chat_id: str, user_id: str, step: str, twitter_handle: str = None, summary: str = None, monitor_level: str = None):
+    """Store state for /add flow."""
+    if not chat_id or not user_id:
+        return
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        '''
+        INSERT OR REPLACE INTO add_requests
+        (chat_id, user_id, step, twitter_handle, summary, monitor_level, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''',
+        (chat_id, user_id, step, twitter_handle, summary, monitor_level, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_add_request(chat_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+    if not chat_id or not user_id:
+        return None
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        'SELECT * FROM add_requests WHERE chat_id = ? AND user_id = ?',
+        (chat_id, user_id)
+    )
+    row = cur.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def clear_add_request(chat_id: str, user_id: str):
+    if not chat_id or not user_id:
+        return
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        'DELETE FROM add_requests WHERE chat_id = ? AND user_id = ?',
+        (chat_id, user_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def stop_monitoring_by_handle(twitter_handle: str) -> bool:
+    """Mark project as removed from monitoring by handle.
+    Also cancels it in launch_calendar so it won't appear in alerts.
+    """
+    if not twitter_handle:
+        return False
+    conn = get_connection()
+    cur = conn.cursor()
+    now = datetime.now().isoformat()
+    handle = twitter_handle.lstrip('@')
+    
+    # 1. Mark as removed in verified_projects
+    cur.execute(
+        '''
+        UPDATE verified_projects
+        SET monitoring_status = 'removed', updated_at = ?
+        WHERE LOWER(twitter_handle) = LOWER(?)
+        ''',
+        (now, handle)
+    )
+    changed_verified = cur.rowcount > 0
+    
+    # 2. Also cancel in launch_calendar (so it won't appear in alerts)
+    cur.execute(
+        '''
+        UPDATE launch_calendar
+        SET calendar_status = 'cancelled', updated_at = ?
+        WHERE LOWER(twitter_handle) = LOWER(?)
+        ''',
+        (now, handle)
+    )
+    changed_calendar = cur.rowcount > 0
+    
+    conn.commit()
+    conn.close()
+    
+    # Sync to Supabase
+    if changed_calendar:
+        _sync_to_supabase('launch_calendar', {
+            'twitter_handle': handle,
+            'calendar_status': 'cancelled',
+            'updated_at': now
+        })
+    
+    return changed_verified or changed_calendar
 
 
 def get_pending_tweets(limit: int = 100) -> List[Dict[str, Any]]:

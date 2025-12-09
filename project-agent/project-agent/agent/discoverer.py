@@ -28,6 +28,7 @@ from .database import (
 )
 
 from users.api_client import UserInfoClient, UserTweetsClient
+from agent.twitter_cache import get_or_fetch_user_tweets, get_or_fetch_user_info
 
 
 DISCOVERY_SYSTEM_PROMPT = f"""You are a crypto project discovery analyst.
@@ -158,20 +159,34 @@ class ProjectDiscoverer:
             mark_mentions_investigated_by_handle(handle)
             return None
         
-        # Fetch user info
+        # Fetch user tweets (cached) and derive user info
         self._log(f"[FETCH] Getting user info...")
+        tweets = []
         user_info = {}
         try:
-            result = self.user_tweets_client.get_user_tweets(
-                user_name=handle,
-                include_replies=False
+            result = get_or_fetch_user_tweets(
+                self.user_tweets_client,
+                handle=handle,
+                author_id=None,
+                include_replies=False,
+                ttl_hours=6
             )
-            tweets = result.get('tweets', [])
+            tweets = result.get('tweets', []) or []
             if tweets:
-                user_info = tweets[0].get('author', {})
+                user_info = tweets[0].get('author', {}) or {}
+                # If we discovered author_id, also try to cache user_info for consistency
+                discovered_id = user_info.get('id')
+                if discovered_id and not user_info.get('followers'):
+                    cached_ui = get_or_fetch_user_info(
+                        self.user_info_client,
+                        author_id=discovered_id,
+                        handle=handle,
+                        ttl_hours=6
+                    )
+                    if cached_ui:
+                        user_info = cached_ui
         except Exception as e:
             self._log(f"[ERROR] Failed to fetch user: {e}")
-            tweets = []
         
         if not user_info:
             self._log(f"[ERROR] Could not fetch user info for @{handle}")
