@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.venv
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Data (mounted as volume)
+*.db
+data/
+
+# Docs
+*.md
+README*
+
+# Tests
+tests/
+test_*
+
+# Misc
+.env
+.env.local
+*.log
+
