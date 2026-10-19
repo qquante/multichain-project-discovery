@@ -58,8 +58,8 @@ HEADERS = {
 
 # Cookies for authentication (required for API access)
 COOKIES = {
-    'userId': '[REMOVED_CREDENTIAL]',
-    'extensionSessionId': '[REMOVED_CREDENTIAL]'
+    'userId': os.environ.get("ALPHAGATE_USER_ID", ""),
+    'extensionSessionId': os.environ.get("ALPHAGATE_SESSION_ID", "")
 }
 
 # Redis channel
