@@ -100,7 +100,7 @@ Adds key-follower count, alpha-hunter data to context.
 ### 4. Website fetch
 [agent/website_reader.py — `find_project_website()`]  
 Priority: bio URLs first, then tweet URLs.  
-Excludes: twitter.com, t.co, instagram.com, tiktok.com, youtube.com, linkedin.com, discord.gg, t.me.  
+Excludes: twitter.com, t.co, instagram.com, tiktok.com, youtube.com, professional-network domains, discord.gg, t.me.  
 Reads via Jina AI: `https://r.jina.ai/{url}` (proxy that converts any URL to markdown).
 
 `extract_site_info()` via regex:
