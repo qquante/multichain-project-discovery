@@ -39,3 +39,7 @@ These checks use offline fixtures or controlled backends.
 ## License
 
 No open-source license has been granted. Redistribution terms remain to be defined.
+
+## Documentation
+
+The pipeline overview and flow reference are maintained in [the main service README](project-agent/project-agent/README.md) and [flow guide](project-agent/project-agent/README_FLOW.md). The alternate service tree shares these guides; duplicate copies are omitted.
