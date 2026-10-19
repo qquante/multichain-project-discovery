@@ -25,9 +25,12 @@ class CookieConfigurationTests(unittest.TestCase):
         for path in self.adapters():
             with self.subTest(path=str(path.relative_to(ROOT))):
                 with patch.dict(os.environ, {}, clear=True):
-                    client = load_client(path)
-                    self.assertEqual(client.COOKIES["userId"], "")
-                    self.assertEqual(client.COOKIES["extensionSessionId"], "")
+                    client = load_client(path)(verbose=False)
+                    try:
+                        self.assertFalse(client.session.cookies.get("userId"))
+                        self.assertFalse(client.session.cookies.get("extensionSessionId"))
+                    finally:
+                        client.session.close()
 
     def test_session_is_loaded_from_explicit_environment(self):
         for path in self.adapters():
@@ -36,9 +39,12 @@ class CookieConfigurationTests(unittest.TestCase):
                     "ALPHAGATE_USER_ID": "fixture-user",
                     "ALPHAGATE_SESSION_ID": "fixture-session",
                 }, clear=True):
-                    client = load_client(path)
-                    self.assertEqual(client.COOKIES["userId"], "fixture-user")
-                    self.assertEqual(client.COOKIES["extensionSessionId"], "fixture-session")
+                    client = load_client(path)(verbose=False)
+                    try:
+                        self.assertEqual(client.session.cookies.get("userId"), "fixture-user")
+                        self.assertEqual(client.session.cookies.get("extensionSessionId"), "fixture-session")
+                    finally:
+                        client.session.close()
 
 
 if __name__ == "__main__":

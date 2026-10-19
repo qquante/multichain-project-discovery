@@ -364,6 +364,9 @@ def format_project_confirmed(data: Dict[str, Any]) -> Tuple[str, List]:
     alphagate_bio_changes = data.get('alphagate_bio_changes', 0)
     alphagate_username_changes = data.get('alphagate_username_changes', 0)
     alphagate_website_added = data.get('alphagate_website_added', False)
+    avg_winrate = data.get('avg_hunter_winrate', 0)
+    hunters_60plus = data.get('hunters_with_60plus_wr', 0)
+    ca_count = data.get('ca_count', 0)
     
     # AlphaGate section
     alphagate_section = ""
@@ -389,9 +392,6 @@ def format_project_confirmed(data: Dict[str, Any]) -> Tuple[str, List]:
     tier_label = data.get('tier_label', 'Baixa Confiança')
     
     # NEW: Adicional AlphaGate metrics
-    avg_winrate = data.get('avg_hunter_winrate', 0)
-    hunters_60plus = data.get('hunters_with_60plus_wr', 0)
-    ca_count = data.get('ca_count', 0)
     rename_count = data.get('rename_count', 0)
     
     # Build scoring section - POSITIVE SIGNALS (why approved)
