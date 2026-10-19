@@ -57,7 +57,7 @@ This private snapshot is for code and portfolio review. Generated runtime materi
 ## Roadmap
 
 - [ ] Choose one canonical version and compare the alternatives before deletion.
-- [ ] Replace cookie/session configuration with explicit local secret loading.
+- [ ] Review cookie expiry diagnostics and local session configuration after the preparation-only environment-loading fix.
 - [ ] Fix documented batch-size and channel-routing problems with offline regressions.
 
 ## History and attribution
