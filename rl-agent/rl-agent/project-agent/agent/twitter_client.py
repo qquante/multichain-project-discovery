@@ -96,33 +96,25 @@ class TwitterAPIClient:
             self._log(f"Error: {str(e)[:50]}")
             return None
     
-    # =========================================================================
     # ENDPOINT 1: /user/info
-    # =========================================================================
     
     def get_user_info(self, username: str) -> Optional[Dict[str, Any]]:
         """Get basic profile data."""
         return self._request("/user/info", {"userName": username})
     
-    # =========================================================================
     # ENDPOINT 2: /user_about
-    # =========================================================================
     
     def get_user_about(self, username: str) -> Optional[Dict[str, Any]]:
         """Get extended profile data (rename count, affiliates)."""
         return self._request("/user_about", {"userName": username})
     
-    # =========================================================================
     # ENDPOINT 3: /user/last_tweets
-    # =========================================================================
     
     def get_last_tweets(self, username: str) -> Optional[Dict[str, Any]]:
         """Get last tweets from user."""
         return self._request("/user/last_tweets", {"userName": username})
     
-    # =========================================================================
     # TWEET ANALYSIS
-    # =========================================================================
     
     def analyze_tweets(self, tweets: List[dict]) -> Dict[str, Any]:
         """
@@ -298,9 +290,7 @@ class TwitterAPIClient:
         
         return result
     
-    # =========================================================================
     # FULL PROFILE
-    # =========================================================================
     
     def get_full_profile(self, username: str) -> Dict[str, Any]:
         """
@@ -408,9 +398,7 @@ class TwitterAPIClient:
         }
 
 
-# =============================================================================
 # CLI TEST
-# =============================================================================
 
 if __name__ == "__main__":
     import json

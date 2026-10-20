@@ -94,9 +94,7 @@ def build_buttons(
     return buttons
 
 
-# ============================================
 # STAGE 0: COLLECTOR
-# ============================================
 
 def format_tweet_collected(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format individual tweet collected message with buttons."""
@@ -154,9 +152,7 @@ Age: {account_age}d | Media: {media} | Blue: {blue}
     return message, buttons
 
 
-# ============================================
 # STAGE 1: TRIAGE
-# ============================================
 
 def format_project_triaged(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format triaged project message with buttons."""
@@ -258,9 +254,7 @@ def format_tweet_rejected(data: Dict[str, Any]) -> Tuple[str, List]:
     return message, buttons
 
 
-# ============================================
 # STAGE 2: VERIFICATION
-# ============================================
 
 def format_key_followers(key_followers: list) -> str:
     """Format ALL key followers as HTML with clickable links. No limit."""
@@ -529,9 +523,7 @@ Tweets: {total_tweets} | Verificado: {blue}
 
 
 
-# ============================================
 # STAGE 3: MONITORING
-# ============================================
 
 def format_project_monitored(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format monitored project update - COMPACT but COMPLETE."""
@@ -756,9 +748,7 @@ def format_project_abandoned(data: Dict[str, Any]) -> Tuple[str, List]:
     return message, buttons
 
 
-# ============================================
 # ABANDONED CHECKER
-# ============================================
 
 def format_project_removed(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format project removed from monitoring message."""
@@ -803,9 +793,7 @@ def format_project_reactivated(data: Dict[str, Any]) -> Tuple[str, List]:
     return message, buttons
 
 
-# ============================================
 # MENTIONS (Influencer tweets about projects)
-# ============================================
 
 def format_mention_detected(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format mention detected message with buttons."""
@@ -897,9 +885,7 @@ def format_project_discovered(data: Dict[str, Any]) -> Tuple[str, List]:
     return message, buttons
 
 
-# ============================================
 # FINGERPRINTS
-# ============================================
 
 def format_fingerprint(data: Dict[str, Any]) -> Tuple[str, List]:
     """Format fingerprint message with buttons."""
@@ -990,10 +976,8 @@ CA: {ca_detected}{ca_str}{urgency_str}{date_str}
     return message, buttons
 
 
-# ============================================
 # LEGACY WRAPPERS (for backward compatibility)
 # Returns just string if needed
-# ============================================
 
 def format_collection_complete(data: Dict[str, Any]) -> str:
     """REMOVED - no batch summaries."""

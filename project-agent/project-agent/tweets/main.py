@@ -13,9 +13,7 @@ from .batch_collector import BatchCollector
 from .keywords import KEYWORD_BATCHES, get_batch_names, build_query_for_batch
 
 
-# ============================================
 # BATCH COLLECTION (Stage 0)
-# ============================================
 
 def run_batch_collection(batch_name: str = None, max_pages: int = 5, verbose: bool = True) -> dict:
     """
@@ -103,9 +101,7 @@ def show_collection_history_report(batch_name: str = None, limit: int = 10):
         print(f"  [{run_time}] {h['batch_name']:<16} | found={h['tweets_found']:>4} | new={h['new_tweets']:>4} | pages={h['pages_fetched']} | reason={h['stopped_reason']}")
 
 
-# ============================================
 # LEGACY FUNCTIONS
-# ============================================
 
 def run_early_project_search(verbose: bool = True) -> dict:
     init_db()

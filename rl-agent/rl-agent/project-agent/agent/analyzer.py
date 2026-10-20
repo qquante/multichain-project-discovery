@@ -148,9 +148,7 @@ class TweetAnalyzer:
         start_time = time.time()
         total_tokens = 0
         
-        # ============================================
         # STEP 1: CLASSIFIER
-        # ============================================
         self._log(f"[CLASSIFY] tweet_id={tweet_id} | @{author}")
         
         classifier_result = self._call_classifier(tweet)
@@ -174,9 +172,7 @@ class TweetAnalyzer:
         author_type = classifier_result.get("author_type", "unknown")
         mentioned_projects = classifier_result.get("mentioned_projects", [])
         
-        # ============================================
         # DECISION TREE (without calling extractor yet)
-        # ============================================
         
         # Case 1: Not a project → REJECT
         if not is_project:
@@ -234,9 +230,7 @@ class TweetAnalyzer:
             self._log(f"[DUPLICATE] tweet_id={tweet_id} | @{author} | already_triaged")
             return {"is_project": True, "is_author_the_project": True, "duplicate": True}
         
-        # ============================================
         # STEP 2: EXTRACTOR (only for new projects where author IS the project)
-        # ============================================
         self._log(f"[EXTRACT] tweet_id={tweet_id} | @{author} | extracting details...")
         
         extractor_result = self._call_extractor(tweet)

@@ -17,9 +17,7 @@ import re
 from typing import Optional, Tuple, List
 
 
-# ============================================
 # REGEX PATTERNS - ONLY CA DETECTION
-# ============================================
 
 # EVM: 0x + 40 hex characters
 EVM_PATTERN = re.compile(r'0x[a-fA-F0-9]{40}')
@@ -43,9 +41,7 @@ TON_PATTERN = re.compile(r'[EU]Q[a-zA-Z0-9_-]{46}')
 CA_PREFIX_PATTERN = re.compile(r'(?:CA|Contract|Token)[\s:]+([a-zA-Z0-9]{30,})', re.IGNORECASE)
 
 
-# ============================================
 # DEX URL PATTERNS - Detect buy/trade links
-# ============================================
 
 # DEX domains that indicate token is ALREADY LAUNCHED
 DEX_DOMAINS = [

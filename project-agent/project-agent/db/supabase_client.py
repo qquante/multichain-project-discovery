@@ -245,9 +245,7 @@ def get_supabase_client(verbose: bool = False) -> SupabaseClient:
     return _supabase_client
 
 
-# ============================================
 # DUAL-WRITE HELPER FUNCTIONS
-# ============================================
 
 def sync_to_supabase(table: str, data: Dict[str, Any], upsert: bool = True) -> bool:
     """
@@ -304,9 +302,7 @@ def batch_sync_to_supabase(table: str, records: List[Dict[str, Any]]) -> Dict[st
     return {"success": success, "failed": failed}
 
 
-# ============================================
 # TABLE-SPECIFIC SYNC FUNCTIONS
-# ============================================
 
 def sync_tweet(tweet_data: Dict[str, Any]) -> bool:
     """Sync a tweet to Supabase tweets table."""
@@ -353,9 +349,7 @@ def sync_keyword_batch(data: Dict[str, Any]) -> bool:
     return sync_to_supabase("keyword_batches", data, upsert=True)
 
 
-# ============================================
 # TESTING
-# ============================================
 
 if __name__ == "__main__":
     print("=" * 60)

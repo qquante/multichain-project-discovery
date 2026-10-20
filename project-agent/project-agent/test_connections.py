@@ -26,9 +26,7 @@ def check(label, ok, detail=""):
     results.append((label, ok))
 
 
-# --------------------------------------------------------------------------
 # 1. Redis
-# --------------------------------------------------------------------------
 print("\n-- Redis -----------------------------------------------------------------")
 try:
     import redis
@@ -52,9 +50,7 @@ except Exception as e:
     check("Redis", False, str(e))
 
 
-# --------------------------------------------------------------------------
 # 2. Supabase
-# --------------------------------------------------------------------------
 print("\n-- Supabase --------------------------------------------------------------")
 supabase_url = os.getenv("SUPABASE_URL", "")
 supabase_key = os.getenv("SUPABASE_SERVICE_KEY", "")
@@ -88,9 +84,7 @@ else:
         check("Supabase query (projects table)", False, str(e))
 
 
-# --------------------------------------------------------------------------
 # 3. Twitter API (twitterapi.io)
-# --------------------------------------------------------------------------
 print("\n-- Twitter API (twitterapi.io) -------------------------------------------")
 twitter_key = os.getenv("TWITTER_API_KEY", "")
 try:
@@ -108,9 +102,7 @@ except Exception as e:
     check("Twitter API", False, str(e))
 
 
-# --------------------------------------------------------------------------
 # 4. OpenRouter (LLM)
-# --------------------------------------------------------------------------
 print("\n-- OpenRouter API --------------------------------------------------------")
 or_key = os.getenv("OPENROUTER_KEY", "")
 if not or_key:
@@ -141,9 +133,7 @@ else:
         check("OpenRouter API", False, str(e))
 
 
-# --------------------------------------------------------------------------
 # 5. Telegram Bots
-# --------------------------------------------------------------------------
 print("\n-- Telegram Bot API ------------------------------------------------------")
 
 def test_telegram_bot(label, token):
@@ -165,9 +155,7 @@ test_telegram_bot("Telegram Bot (main)",   os.getenv("TELEGRAM_BOT_TOKEN", ""))
 test_telegram_bot("Telegram Bot (chains)", os.getenv("TELEGRAM_BOT_TOKEN_CHAINS", ""))
 
 
-# --------------------------------------------------------------------------
 # 6. SQLite (local DB)
-# --------------------------------------------------------------------------
 print("\n-- SQLite ----------------------------------------------------------------")
 db_candidates = [
     os.path.join(os.path.dirname(__file__), "agent.db"),
@@ -192,9 +180,7 @@ else:
     check("SQLite agent.db", False, "file not found in . or ./data/")
 
 
-# --------------------------------------------------------------------------
 # Summary
-# --------------------------------------------------------------------------
 print("\n-- Summary ---------------------------------------------------------------")
 passed = sum(1 for _, ok in results if ok)
 failed = sum(1 for _, ok in results if not ok)

@@ -42,9 +42,7 @@ def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
 def _run_migrations(conn, cur):
     """Add missing columns to existing tables (safe migrations)."""
     
-    # =========================================================================
     # VERIFIED_PROJECTS MIGRATIONS - ALL 61 NEW COLUMNS FOR RL TRAINING
-    # =========================================================================
     try:
         cur.execute("PRAGMA table_info(verified_projects)")
         existing_cols = {row[1] for row in cur.fetchall()}
@@ -815,9 +813,7 @@ def save_triage_result(result: Dict[str, Any]) -> bool:
     return True
 
 
-# ============================================
 # Favorites and manual add helpers
-# ============================================
 
 def add_project_favorite(twitter_handle: str, user_id: str, username: str = "", chat_id: str = "") -> bool:
     """Save a favorite entry; returns True if inserted, False if already exists."""
@@ -1102,9 +1098,7 @@ def get_triage_stats() -> Dict[str, Any]:
     }
 
 
-# ============================================
 # STAGE 2: Verification Functions
-# ============================================
 
 def get_pending_verifications(limit: int = 100) -> List[Dict[str, Any]]:
     """Get triaged projects that haven't been verified yet."""
@@ -1553,9 +1547,7 @@ def get_verification_stats() -> Dict[str, Any]:
     }
 
 
-# ============================================
 # STAGE 3: Monitoring Functions
-# ============================================
 
 # Check intervals by priority (in hours)
 MONITOR_INTERVALS = {
@@ -1918,9 +1910,7 @@ def activate_monitoring_for_confirmed() -> int:
     return count
 
 
-# ============================================
 # FINGERPRINTS: Decision Audit Trail
-# ============================================
 
 def save_fingerprint(data: Dict[str, Any]) -> int:
     """Save a decision fingerprint for audit trail."""
@@ -2167,9 +2157,7 @@ def get_fingerprint_stats() -> Dict[str, Any]:
     }
 
 
-# ============================================
 # MENTIONS: Influencer/Shill Tweet Tracking
-# ============================================
 
 def save_mention(data: Dict[str, Any]) -> int:
     """Save a mention (tweet from influencer about a project)."""
@@ -2426,9 +2414,7 @@ def get_mention_stats() -> Dict[str, Any]:
     }
 
 
-# ============================================
 # LAUNCH CALENDAR
-# ============================================
 
 def init_calendar_table():
     """Initialize launch_calendar table."""

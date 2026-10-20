@@ -100,9 +100,7 @@ class AlphaGateClient:
         
         return None
 
-    # =========================================================================
     # ENDPOINT 1: /child - Profile + daily_stats
-    # =========================================================================
     
     def get_child(self, username: str) -> Optional[Dict[str, Any]]:
         """
@@ -193,9 +191,7 @@ class AlphaGateClient:
         self._log(f"@{username}: profile loaded | followers={result['followers_count']} | days_tracked={result['days_tracked']}")
         return result
 
-    # =========================================================================
     # ENDPOINT 2: /child/first-followers - Key followers list
-    # =========================================================================
     
     def get_first_followers(self, twitter_id: str) -> Dict[str, Any]:
         """
@@ -241,9 +237,7 @@ class AlphaGateClient:
         self._log(f"twitter_id={twitter_id}: {result['key_followers_count']} key followers / {result['first_followers_count']} total")
         return result
 
-    # =========================================================================
     # ENDPOINT 3: /child/parents - Alpha hunters with performance
-    # =========================================================================
     
     def get_parents(self, username: str, twitter_id: str) -> Dict[str, Any]:
         """
@@ -313,9 +307,7 @@ class AlphaGateClient:
         self._log(f"@{username}: {result['alpha_hunters_count']} hunters | best_wr={result['best_hunter_winrate']:.1f}%")
         return result
 
-    # =========================================================================
     # ENDPOINT 4: /child/alerts - Historical changes
-    # =========================================================================
     
     def get_alerts(self, username: str) -> Dict[str, Any]:
         """
@@ -387,9 +379,7 @@ class AlphaGateClient:
         self._log(f"@{username}: {result['total_alerts']} alerts | renames={result['rename_count']} | bio_changes={result['bio_changes_count']}")
         return result
 
-    # =========================================================================
     # ENDPOINT 5: /tweets/contract-tweets - Tweets with CA
-    # =========================================================================
     
     def get_contract_tweets(self, twitter_id: str, contracts: List[str]) -> Dict[str, Any]:
         """
@@ -470,9 +460,7 @@ class AlphaGateClient:
         self._log(f"twitter_id={twitter_id}: {result['ca_tweets_count']} CA tweets | pump_fun_links={pump_fun_links}")
         return result
 
-    # =========================================================================
     # FULL ENRICHMENT - All endpoints combined
-    # =========================================================================
     
     def enrich_project(self, username: str) -> Dict[str, Any]:
         """
@@ -523,9 +511,7 @@ class AlphaGateClient:
         return result
 
 
-# =============================================================================
 # CLI TEST
-# =============================================================================
 
 if __name__ == "__main__":
     import json

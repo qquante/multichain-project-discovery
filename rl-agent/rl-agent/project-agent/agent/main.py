@@ -28,9 +28,7 @@ from .database import (
 from config import ANALYSIS_BATCH_LIMIT, VERIFICATION_BATCH_LIMIT, MONITORING_BATCH_LIMIT
 
 
-# ============================================
 # STAGE 1: Tweet Analysis (Triage)
-# ============================================
 
 def run_analysis(limit: int = None, delay: float = 1.0, verbose: bool = True):
     """Stage 1: Run tweet analysis. Default limit from config."""
@@ -81,9 +79,7 @@ def show_triage_stats():
         print(f"    {chain}: {count}")
 
 
-# ============================================
 # STAGE 2: Project Verification
-# ============================================
 
 def run_verification(limit: int = None, delay: float = 2.0, verbose: bool = True):
     """Stage 2: Run project verification on triaged projects. Default limit from config."""
@@ -153,9 +149,7 @@ def show_verification_stats():
             print(f"    {chain}: {count}")
 
 
-# ============================================
 # STAGE 3: Project Monitoring
-# ============================================
 
 def run_monitoring(limit: int = None, verbose: bool = True):
     """Stage 3: Run monitoring cycle for confirmed projects. Default limit from config."""
@@ -270,9 +264,7 @@ def show_monitoring_stats_full():
     print(f"    Launched: {stats.get('launched_count', 0)}")
 
 
-# ============================================
 # FINGERPRINTS: Decision Audit Trail
-# ============================================
 
 def show_project_journey(handle: str):
     """Show complete journey of a project through all stages."""
@@ -402,9 +394,7 @@ def show_rejected_analysis(stage: int = 1, limit: int = 10):
             print(f"  Factors: {factors}")
 
 
-# ============================================
 # Combined Stats
-# ============================================
 
 def show_stats():
     """Show all statistics."""

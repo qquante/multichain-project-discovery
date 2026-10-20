@@ -32,9 +32,7 @@ def investigate():
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
-    # ========================================
     # 1. TRIAGED_PROJECTS - Dados salvos pelo AlphaGate
-    # ========================================
     print("\n" + "=" * 80)
     print("📋 1. TRIAGED_PROJECTS - O que foi salvo (últimos 20)")
     print("=" * 80)
@@ -101,9 +99,7 @@ def investigate():
     
     print(f"\n📊 RESUMO: AlphaGate={alphagate_count} | Triage={triage_count}")
     
-    # ========================================
     # 2. ANÁLISE: Dados do AlphaGate estão "porcos"?
-    # ========================================
     print("\n" + "=" * 80)
     print("🔍 2. ANÁLISE DOS DADOS ALPHAGATE")
     print("=" * 80)
@@ -159,9 +155,7 @@ def investigate():
     print(f"Confidence = 0:     {problems['conf_zero']}")
     print(f"Keywords vazios:    {problems['no_keywords']}")
     
-    # ========================================
     # 3. VERIFIED_PROJECTS - Stage 2 Output
-    # ========================================
     print("\n" + "=" * 80)
     print("✅ 3. VERIFIED_PROJECTS - Stage 2 Output (últimos 20)")
     print("=" * 80)
@@ -204,9 +198,7 @@ def investigate():
         if rejection:
             print(f"   Rejection: {rejection}")
     
-    # ========================================
     # 4. CONTAGEM POR STATUS
-    # ========================================
     print("\n" + "=" * 80)
     print("📊 4. ESTATÍSTICAS GERAIS")
     print("=" * 80)
@@ -240,9 +232,7 @@ def investigate():
     print(f"")
     print(f"🔄 Active Monitoring:   {active_monitoring}")
     
-    # ========================================
     # 5. PENDENTES DE VERIFICAÇÃO
-    # ========================================
     print("\n" + "=" * 80)
     print("⏳ 5. PROJETOS PENDENTES DE VERIFICAÇÃO")
     print("=" * 80)
@@ -267,9 +257,7 @@ def investigate():
         created = row['created_at'] or ''
         print(f"  @{handle:20} | {name:20} | {chain:10} | {created[:19]}")
     
-    # ========================================
     # 6. RAW_RESPONSE - Ver dados brutos salvos
-    # ========================================
     print("\n" + "=" * 80)
     print("🔧 6. RAW_RESPONSE - Dados brutos de um projeto AlphaGate")
     print("=" * 80)
@@ -300,9 +288,7 @@ def investigate():
     
     conn.close()
     
-    # ========================================
     # 7. FLUXO ESPERADO vs FLUXO REAL
-    # ========================================
     print("\n" + "=" * 80)
     print("📋 7. FLUXO ESPERADO vs FLUXO REAL")
     print("=" * 80)

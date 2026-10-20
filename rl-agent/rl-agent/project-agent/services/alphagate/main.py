@@ -248,9 +248,7 @@ async def process_alphagate_project(redis_client, project: dict) -> bool:
         log(f"Skipping @{username} - already has CA")
         return False
     
-    # ========================================
     # NEW: Validation to reject personal accounts
-    # ========================================
     
     # Check 3: Bio is just a @mention? (indicates person, not project)
     # Example: bio = "@konnex_world" means this is a person pointing to the real project
@@ -281,9 +279,7 @@ async def process_alphagate_project(redis_client, project: dict) -> bool:
                 log(f"Skipping @{username} - name looks like person: '{name}'")
                 return False
     
-    # ========================================
     # End of validation checks
-    # ========================================
     
     # Convert to our format
     result = convert_alphagate_to_triage(project)

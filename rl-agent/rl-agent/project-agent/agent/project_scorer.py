@@ -8,9 +8,7 @@ from typing import Dict, Any, List, Tuple
 from datetime import datetime
 
 
-# ============================================
 # RED FLAG THRESHOLDS
-# ============================================
 
 RED_FLAGS = {
     # Tweet Analysis
@@ -32,9 +30,7 @@ RED_FLAGS = {
     "avg_engagement_rate": 0.001,   # Less than 0.1% = fake followers
 }
 
-# ============================================
 # POSITIVE SIGNALS
-# ============================================
 
 POSITIVE_SIGNALS = {
     # Verification

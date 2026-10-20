@@ -14,11 +14,9 @@ def get_current_date_context() -> str:
     return f"Today is {now.strftime('%A, %B %d, %Y')} (ISO: {now.strftime('%Y-%m-%d')})"
 
 
-# ============================================
 # LLM 1: CLASSIFICADOR
 # Tarefa: Decidir se é projeto e quem é o autor
 # Tokens: ~1200 (muito menor que antes!)
-# ============================================
 
 def get_classifier_system_prompt() -> str:
     """Prompt do classificador - decisões críticas apenas."""
@@ -203,11 +201,9 @@ def build_classifier_prompt(tweet_data: dict) -> str:
     )
 
 
-# ============================================
 # LLM 2: EXTRATOR DE DETALHES
 # Tarefa: Extrair TODOS os detalhes do projeto
 # Tokens: ~2400 (só chamado se classificador aprovar)
-# ============================================
 
 def get_extractor_system_prompt() -> str:
     """Prompt do extrator - todos os detalhes."""

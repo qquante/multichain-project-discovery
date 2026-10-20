@@ -178,9 +178,7 @@ class ProjectVerifier:
                 "reasoning": "Could not fetch user data"
             }
         
-        # ============================================
         # PRE-LLM CHECK: Detect CA programmatically
-        # ============================================
         # This catches CAs that the LLM might miss!
         bio = user_info.get('description', '') or user_info.get('bio', '') or ''
         name = user_info.get('name', '') or ''
@@ -253,9 +251,7 @@ class ProjectVerifier:
                 "pre_check_rejection": True
             }
         
-        # ============================================
         # NEW: ML SCORING - Check red flags BEFORE LLM
-        # ============================================
         # Uses our enhanced clients with 137 parameters
         self._log(f"[ML_SCORE] Fetching enhanced Twitter profile...")
         
@@ -394,9 +390,7 @@ class ProjectVerifier:
         
         self._log(f"[TIER] {result['tier_emoji']} Tier {result['tier']} | {result['tier_label']}")
         
-        # ============================================
         # Chain Validation: LLM vs AlphaGate
-        # ============================================
         llm_chain_detection = result.get('chain_detection', {})
         llm_chain = llm_chain_detection.get('detected_chain', '').lower() if llm_chain_detection else ''
         alphagate_chains = alphagate_data.get('project_chains', [])

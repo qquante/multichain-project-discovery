@@ -45,10 +45,8 @@ def get_rest_headers() -> Dict[str, str]:
     }
 
 
-# ============================================
 # SQL STATEMENTS FOR POSTGRESQL
 # Converted from SQLite to PostgreSQL syntax
-# ============================================
 
 SQL_TWEETS_DB = """
 -- ============================================

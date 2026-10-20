@@ -400,9 +400,7 @@ Respond with valid JSON only, no markdown, no explanation:
 }}"""
 
 
-# ============================================
 # STAGE 2: VERIFICATION PROMPTS
-# ============================================
 
 def get_verification_system_prompt() -> str:
     """Get verification system prompt with current date (dynamic)."""
@@ -843,9 +841,7 @@ def build_user_prompt(tweet_data: dict) -> str:
     )
 
 
-# ============================================
 # STAGE 3: MONITORING PROMPTS
-# ============================================
 
 def get_monitor_system_prompt() -> str:
     """Get monitor system prompt with current date (dynamic)."""
