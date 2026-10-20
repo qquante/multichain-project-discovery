@@ -1,34 +1,69 @@
 # Multichain Project Discovery
 
+**Collect social observations, classify projects and track launch evidence.**
+
+![Language: Python](https://img.shields.io/badge/Language-Python-3776AB?style=flat-square&logo=python) ![Messaging: Redis](https://img.shields.io/badge/Messaging-Redis-555555?style=flat-square) [![License: MIT](https://img.shields.io/badge/License-MIT-555555?style=flat-square)](LICENSE)
+
+[Overview](#overview) · [Quickstart](#quickstart) · [Example](#example) · [Validation](#validation) · [Documentation](#documentation)
+
+## Overview
+
 A multi-stage Python discovery pipeline that collects social observations, classifies projects and tracks launch evidence.
 
-## Features
+**Stack:** Python · Redis Pub/Sub · SQLite WAL · Docker Compose · LLM API adapter · Telegram integrations
 
-- Collector, triage, verification and monitoring services have separate responsibilities.
-- Chain-address extraction and project scoring enrich observations.
-- Messaging services route stage-specific summaries.
+## Services form a discovery pipeline
 
-## Stack
+| Component | Behavior |
+| --- | --- |
+| Collect and triage | Separate services collect observations and classify candidates. |
+| Enrich and verify | Address extraction and project checks add chain/source context. |
+| Track and route | Monitoring services persist state and route stage-specific summaries. |
 
-Python · Redis Pub/Sub · SQLite WAL · Docker Compose · LLM API adapter · Telegram integrations
+## Processing path
 
-Redis routes service messages; SQLite stores projects, social observations and operational state. Supabase integration code is also present.
-
-## Getting started
-
-Inspect the nested compose and requirements files. Configure credentials locally; empty defaults are intentional after cleanup. Do not start every service merely to inspect the pipeline.
-
-## How it works
-
-```text
-Social input → collector → classifier/triage → project verification → launch monitoring → configured notifications
+```mermaid
+flowchart LR
+  N0["Social input"]
+  N1["collector"]
+  N2["classifier/triage"]
+  N3["project verification"]
+  N4["launch monitoring"]
+  N5["configured notifications"]
+N0 --> N1 --> N2 --> N3 --> N4 --> N5
 ```
 
-## Current limitations
+## Quickstart
 
-Multiple local versions remain in this review. Embedded API/JWT/bot fallbacks were removed, but this is not a completed security audit. Known project notes identify oversized batches, cookie handling and routing issues. No service or LLM request was run.
+```console
+python -m venv .venv
+# Activate .venv, then:
+python -m pip install -r project-agent/project-agent/requirements.txt
+python -m compileall -q project-agent/project-agent/agent
+```
 
-## Tests
+The commands above install prerequisites or run the specified offline checks. Live collection, cloud operations, messaging and trading are separate operational steps when present.
+
+## Example
+
+**Inspect the workflow**
+
+Start in the [main service README](project-agent/project-agent/README.md) and [flow guide](project-agent/project-agent/README_FLOW.md). Follow a social observation through collection, classification, verification and launch tracking. Read the queue and persistence boundaries before choosing individual services.
+
+## Configuration and storage
+
+Redis Pub/Sub routes service messages; SQLite WAL stores project/social state. Nested requirements/Compose definitions belong to their service tree. LLM, Telegram and source-session configuration are external inputs; Supabase integration code is also present.
+
+## Repository guide
+
+| Location | Responsibility |
+| --- | --- |
+| [project-agent/project-agent/agent](project-agent/project-agent/agent) | Main agent modules |
+| [project-agent/project-agent/services](project-agent/project-agent/services) | Service implementations |
+| [project-agent/project-agent/supabase_schema.sql](project-agent/project-agent/supabase_schema.sql) | Supabase schema |
+| [rl-agent](rl-agent) | Alternate service tree |
+
+## Validation
 
 ```console
 python -m unittest discover -s tests -v
@@ -36,10 +71,15 @@ python -m unittest discover -s tests -v
 
 These checks use offline fixtures or controlled backends.
 
-## License
+## Scope and operational boundaries
 
-Project-authored source code is licensed under the [MIT License](LICENSE). Third-party components and datasets retain their respective rights and licenses.
+Multiple service-tree versions remain. The root guide identifies the main documented tree rather than claiming all versions are interchangeable. Existing notes identify batching, cookie handling and routing limitations; installing dependencies does not validate live integrations.
 
 ## Documentation
 
-The pipeline overview and flow reference are maintained in [the main service README](project-agent/project-agent/README.md) and [flow guide](project-agent/project-agent/README_FLOW.md). The alternate service tree shares these guides; duplicate copies are omitted.
+- [Main service guide](project-agent/project-agent/README.md)
+- [Pipeline flow](project-agent/project-agent/README_FLOW.md)
+
+## License and attribution
+
+Project-authored source code is licensed under the [MIT License](LICENSE). Third-party components and datasets retain their respective rights and licenses.
